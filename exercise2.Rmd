@@ -24,8 +24,8 @@ If we look at the data, we see several participants that have a first month bill
 corrected_telephone_data = telephone_data[apply(telephone_data, 1, function(row) all(row !=0 )), ]
 
 par(mfrow=c(2,2))
-hist(telephone_data$Bills, prob=TRUE, xlab = "First month bills (€)", main = "data before correction")
-hist(corrected_telephone_data, prob=TRUE, xlab = "First month bills (€)", main = "data after correction")
+hist(telephone_data$Bills, xlab = "First month bills (€)", main = "data before correction")
+hist(corrected_telephone_data, xlab = "First month bills (€)", main = "data after correction")
 boxplot(telephone_data$Bills, ylab = "€")
 boxplot(corrected_telephone_data, ylab = "€")
 ```
@@ -34,18 +34,49 @@ We now see that the first bin in the histogram contains a lower frequency due to
 
 b) By using a bootstrap test with the test statistic T = median(X1,...,X200), test whether the data telephone.txt stems from the exponential distribution Exp(λ) with some λ from [0.01, 0.1].
 ```{r}
-hist(data,prob=T)
-hist(data,prob=T,ylim=c(0,0.7))
-max(data)
-x=seq(0,max(data),length=1000)
-lines(x,dexp(x),type="l",col="blue",lwd=2)
+test_statistic = median(corrected_telephone_data)
+
+hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
+lamb = 1/test_statistic
+x = seq(0, length(corrected_telephone_data),length=1000)
+f = lamb*exp(-lamb*x)
+lines(x,f,col="blue",lwd=2)
 ```
+
+```{r}
+t = median(corrected_telephone_data)
+B=1000
+tstar=numeric(B)
+n=length(corrected_telephone_data)
+for (i in 1:B){
+  xstar = rexp(n,lamb)
+  tstar[i] = median(xstar)}
+hist(tstar,prob=T)
+
+pl=sum(tstar<t)/B
+pr=sum(tstar>t)/B
+p=2*min(pl,pr)
+pl;pr;p
+```
+
+
 
 c) Construct a 95% bootstrap confidence interval for the population median of the sample.
 
 
 ```{r}
-
+B=1000
+Tstar=numeric(B)
+c1 = corrected_telephone_data
+T1 = median(c1)
+for(i in 1:B) {
+  Xstar=sample(c1,replace=TRUE)
+  Tstar[i]=median(Xstar) }
+Tstar25=quantile(Tstar,0.05)
+Tstar975=quantile(Tstar,0.95)
+sum(Tstar<Tstar25)
+T1
+c(2*T1-Tstar975,2*T1-Tstar25)
 ```
 
 d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate λ and construct again a 95% confidence interval for the population median. Comment on your findings.

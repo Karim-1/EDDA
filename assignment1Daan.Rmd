@@ -174,8 +174,6 @@ soy = chickwts[chickwts$feed == "soybean",]$weight
 cas = chickwts[chickwts$feed == "casein",]$weight
 sun; meat; horse; linseed; soy; cas
 
-
-
 ```
 
 c) Check the ANOVA model assumptions by using relevant diagnostic tools.
