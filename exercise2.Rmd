@@ -36,6 +36,7 @@ b) By using a bootstrap test with the test statistic T = median(X1,...,X200), te
 ```{r}
 hist(data,prob=T)
 hist(data,prob=T,ylim=c(0,0.7))
+max(data)
 x=seq(0,max(data),length=1000)
 lines(x,dexp(x),type="l",col="blue",lwd=2)
 ```
