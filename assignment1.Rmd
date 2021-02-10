@@ -11,14 +11,41 @@ The data set birthweight.txt contains the birthweights of 188 newborn babies. We
 
 a) Check normality of the data. Compute a point estimate for μ. Derive, assuming normality (irrespective of your conclusion about normality od the data), a bounded 90% confidence interval for μ.
 
-```{r}
+```{r echo=FALSE}
 birth = read.table("birthweight.txt",header=TRUE)
-birth$birthweight
-mean(birth$birthweight)
-
-shapiro.test(birth$birthweight)
+birthweight = birth$birthweight
 ```
+
+Point estimate for μ:
+```{r}
+mean(birthweight)
+```
+
+Check normality with Shapiro-Wilk test:
+```{r}
+shapiro.test(birthweight)[2]
+```
+p is non-significant. This implies that h0 is accepted (the data is normally distributed).
+
 
 
 b) An expert claims that the mean birthweight is bigger than 2800, verify this claim by using a t-test. What is the outcome of the test if you take α = 0.1? And other values of α?
+
+If we test this hypothesis with α = 0.1 we get:
+```{r}
+alpha = .1
+t.test(birthweight, alternative = "l", conf.level = 1-alpha, mu = 2800)[3]
+```
+
+p = .9864, therefore, h0 is accepted. If we try this for alpha = .05, .01, .001, we get the following p values:
+```{r}
+alpha = .05
+t.test(birthweight, alternative = "l", conf.level = 1-alpha, mu = 2800)[3]
+
+alpha = .05
+
+```
+
+
+
 c) In the R-output of the test from b), also a confidence interval is given, but why is it different from the confidence interval found in a) and why is it one-sided?
