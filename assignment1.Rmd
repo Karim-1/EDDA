@@ -11,6 +11,8 @@ The data set birthweight.txt contains the birthweights of 188 newborn babies. We
 
 a) Check normality of the data. Compute a point estimate for μ. Derive, assuming normality (irrespective of your conclusion about normality od the data), a bounded 90% confidence interval for μ.
 
+[test] PAAR WOORDJES [/test]
+
 ```{r}
 birth = read.table("birthweight.txt",header=TRUE)
 birth$birthweight
@@ -22,3 +24,5 @@ shapiro.test(birth$birthweight)
 
 b) An expert claims that the mean birthweight is bigger than 2800, verify this claim by using a t-test. What is the outcome of the test if you take α = 0.1? And other values of α?
 c) In the R-output of the test from b), also a confidence interval is given, but why is it different from the confidence interval found in a) and why is it one-sided?
+
+[test] PAAR WOORDJES [/test]
