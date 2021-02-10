@@ -1,11 +1,13 @@
 ---
-title: "assignment1"
+title: "Assignment 1"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# Exercise 1
 
 The data set birthweight.txt contains the birthweights of 188 newborn babies. We are interested in finding the underlying (population) mean μ of birthweights.
 
@@ -48,3 +50,103 @@ alpha = .05
 
 
 c) In the R-output of the test from b), also a confidence interval is given, but why is it different from the confidence interval found in a) and why is it one-sided?
+
+# Exercise 4
+
+To study the effect of energy drink a sample of 24 high school pupils were randomized to drinking either a
+softdrink or an energy drink after running for 60 meters. After half an hour they were asked to run again.
+For both sprints they were asked to sprint as fast they could, and the sprinting time was measured. The
+data is given in the file run.txt. [Courtesy class 5E, Stedelijk Gymnasium Leiden, 2010.]
+
+```{r echo=FALSE}
+# Load data
+run = read.table("run.txt",header=TRUE)
+lemo = subset(run, drink == "lemo")
+energy = subset(run, drink == "energy")
+
+
+```
+
+
+a) Disregarding the type of drink, test whether the run times before drink and after are correlated.
+
+Check for normality:
+```{r}
+# qqnorm(run$before, main = "Normal Q-Q plot before drink")
+# qqnorm(run$after, main = "Normal Q-Q plot after drink")
+shapiro.test(run$before)
+shapiro.test(run$after)
+
+```
+Assumption for normality met since both p-values are larger than 0.05.
+
+```{r}
+plot(run$before, run$after, xlab="Run time before drink", ylab="Run time after drink")
+cor.test(run$before, run$after,  method = "pearson")
+```
+
+Since Pearson's product-moment correlation p < 0.05 we can state that we found significant evidence that a true correlation exists.
+
+b) Test separately, for both the softdrink and the energy drink conditions, whether there is a difference in speed in the two running tasks.
+
+Check for normality:
+```{r}
+# qqnorm(lemo$before)
+shapiro.test(lemo$before)
+# qqnorm(lemo$after)
+shapiro.test(lemo$after)
+
+# qqnorm(energy$before)
+shapiro.test(energy$before)
+# qqnorm(energy$after)
+shapiro.test(energy$after)
+```
+Assumption for normality met since all four both p-values are larger than 0.05.
+
+Check run time difference between before and after drink:
+```{r}
+t.test(lemo$before, lemo$after, paired = TRUE, var.equal = FALSE)
+t.test(energy$before, energy$after, paired = TRUE, var.equal = FALSE)
+
+```
+p > 0.05 thus no evidence for a difference between before and after drink run times for both the energy and the limo group.
+
+
+c) For each pupil compute the time difference between the two running tasks. Test whether these time
+differences are effected by the type of drink.
+
+Calculate differences, check for normality and then test whether these time differences are effected by the type of drink:
+```{r}
+lemo_diff = lemo$before - lemo$after
+energy_diff = energy$before - energy$after
+
+# qqnorm(lemo_diff)
+shapiro.test(lemo_diff)
+# qqnorm(energy_diff)
+shapiro.test(energy_diff)
+
+t.test(lemo_diff, energy_diff, paired = FALSE)
+```
+Assumption for normality met since both p-values are larger than 0.05.
+The limo and energy time differences show no evidence for a true difference since the t-test p > 0.05
+
+d) Can you think of a plausible objection to the design of the experiment in b) if the main aim was to test
+whether drinking the energy drink speeds up the running? Is there a similar objection to the design
+of the experiment in c)? Comment on all your findings in this exercise.
+
+Experiment b takes the before drink times as control group and the after drink as experiment group, whereas the aim of the experiment was to investigate the difference between energy drink an limo on running times after the drink. When investigating a difference between before and after drinking the difference between drinks is not investigated.
+
+Furthermore, the research question states that the increase in running times after drinking energy and control group limo needs to be researched, but then only the running times after drinking need to be taken into consideration since investigating the difference between before and after drinking also includes the proven decrease in running times when performing these intensive tasks shortly after each other. This effect works against what we want to investigate. This very same point of criticism also applies to question c since that question asks for the time difference between the before and after group.
+
+
+
+
+
+
+
+
+
+
+
+
+
