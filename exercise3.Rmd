@@ -35,14 +35,15 @@ We now see that the first bin in the histogram contains a lower frequency due to
 b) By using a bootstrap test with the test statistic T = median(X1,...,X200), test whether the data telephone.txt stems from the exponential distribution Exp(λ) with some λ from [0.01, 0.1].
 ```{r}
 test_statistic = median(corrected_telephone_data)
+lamb = 1/test_statistic
 
 hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
-lamb = 1/test_statistic
 x = seq(0, length(corrected_telephone_data),length=1000)
 f = lamb*exp(-lamb*x )
 lines(x,f,col="blue",lwd=2)
 ```
 ```{r}
+t = median(corrected_telephone_data)
 B=1000
 tstar=numeric(B)
 n=length(corrected_telephone_data)
@@ -51,25 +52,55 @@ for (i in 1:B){
   tstar[i]=median(xstar)}
   hist(tstar,prob=T)
   
-
-pl=sum(tstar<test_statistic)/B
-pl
+p_left=sum(tstar<t)/B
+p_right=sum(tstar>t)/B
+p=2*min(pl,pr)
+pl;pr;p
 ```
 
+The p-value is .002, therefore, h0 is rejected. This means that the distribution of the data does not come from the exponential distribution with lambda = 1/median(data). 
 
 
 c) Construct a 95% bootstrap confidence interval for the population median of the sample.
 
-
 ```{r}
+B=5000
+Tstar=numeric(B)
+T1 = median(corrected_telephone_data)
 
+for(i in 1:B) {
+  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Tstar[i]=median(Xstar) }
+  Tstar05=quantile(Tstar,0.05)
+  Tstar95=quantile(Tstar,0.95)
+  sum(Tstar<Tstar05)
+c(2*T1-Tstar95,2*T1-Tstar05)
 ```
+The 95% bootstrap confidence interval for the population median of the telephone data is [20.7, 36.5] around its median T1=28.9.
+
 
 d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate λ and construct again a 95% confidence interval for the population median. Comment on your findings.
 
+We can translate the median of the samples to lambda since
+$median[X] = \frac{ln(2)}{\lambda}$
+which gives us:
+$\lambda = \frac{ln(2)}{median[X]}$
+
+If we plot the medians of the data, we get:
 ```{r}
+hist(Tstar, prob=T)
+```
+
+We then check whether the lambdas are normally distributed:
+```{r}
+shapiro.test(Tstar)
+
+mean_lamb = log(2)/mean(Tstar)
+mean_lamb
 
 ```
+
+
 
 e) Using an appropriate test, test the null hypothesis that the median bill is bigger or equal to 40 euro against the alternative that the median bill is smaller than 40 euro. Next, design and perform a test
 to check whether the fraction of the bills less than 10 euro is less than 25%.
