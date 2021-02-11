@@ -14,7 +14,7 @@ a) Make an appropriate plot of this data set. What marketing advice(s) would you
 ```{r}
 telephone_data = read.table("telephone.txt",header=TRUE)
 
-# sorted data
+# sorted data of firsth month bills
 sort(telephone_data$Bills)
 ```
 If we look at the data, we see several participants that have a first month bill of €0. This does not seem plausible, as the company probably would not give out subscriptions for free. Therefore, we trim the data of zero-values.
@@ -81,24 +81,55 @@ The 95% bootstrap confidence interval for the population median of the telephone
 
 d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate λ and construct again a 95% confidence interval for the population median. Comment on your findings.
 
-We can translate the median of the samples to lambda since
-$median[X] = \frac{ln(2)}{\lambda}$
-which gives us:
-$\lambda = \frac{ln(2)}{median[X]}$
+First we will repeat the steps from question 1c, but with the sample mean in stead of the sample medians. 
 
-If we plot the medians of the data, we get:
+```{r}
+B=5000
+Tstar=numeric(B)
+T1 = median(corrected_telephone_data)
+
+for(i in 1:B) {
+  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Tstar[i]=mean(Xstar) }
+  Tstar05=quantile(Tstar,0.05)
+  Tstar95=quantile(Tstar,0.95)
+  sum(Tstar<Tstar05)
+c(2*T1-Tstar95,2*T1-Tstar05)
+```
+
+<!-- We can translate the median of the samples to lambda since -->
+<!-- $median[X] = \frac{ln(2)}{\lambda}$ -->
+<!-- meaning: -->
+<!-- $\lambda = \frac{ln(2)}{median[X]}$ -->
+
+If we plot the means of the data, we get:
 ```{r}
 hist(Tstar, prob=T)
 ```
 
-We then check whether the lambdas are normally distributed:
+We then check whether the data is normally distributed:
 ```{r}
 shapiro.test(Tstar)
-
-mean_lamb = log(2)/mean(Tstar)
-mean_lamb
-
 ```
+
+Therefore, the CLT applies. We can then obtain an estimate for $\lambda$ with:
+$\lambda = \frac{1}{\mu}$
+
+Giving us an estimate of:
+```{r}
+est_lamb = 1/(mean(Tstar))
+est_lamb
+```
+
+<!-- misschien dit hieronder weghalen -->
+If we plot the exponential distribution with $\lambda = .022$ against our data, we observe:
+```{r}
+hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
+x = seq(0, length(corrected_telephone_data),length=1000)
+f = est_lamb*exp(-est_lamb*x )
+lines(x,f,col="blue",lwd=2)
+```
+
 
 
 
