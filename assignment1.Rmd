@@ -1,8 +1,9 @@
 ---
 title: "Assignment 1 -- Experimental Design and Data Analysis"
-output: html_document
-includes:
-        before_body: title.sty
+output: 
+  pdf_document:
+    includes:
+      before_body: title.sty
 ---
 
 
