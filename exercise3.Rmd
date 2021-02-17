@@ -71,9 +71,10 @@ T1 = median(corrected_telephone_data)
 for(i in 1:B) {
   Xstar=sample(corrected_telephone_data,replace=TRUE)
   Tstar[i]=median(Xstar) }
-  Tstar05=quantile(Tstar,0.05)
-  Tstar95=quantile(Tstar,0.95)
-  sum(Tstar<Tstar05)
+
+Tstar05=quantile(Tstar,0.05)
+Tstar95=quantile(Tstar,0.95)
+sum(Tstar<Tstar05)
 c(2*T1-Tstar95,2*T1-Tstar05)
 ```
 The 95% bootstrap confidence interval for the population median of the telephone data is [20.7, 36.5] around its median T1=28.9.
