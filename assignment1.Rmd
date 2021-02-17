@@ -1,13 +1,17 @@
 ---
-title: "Assignment 1"
-output: html_document
+title: "Assignment 1 -- Experimental Design and Data Analysis"
+output: 
+  pdf_document:
+    includes:
+      before_body: title.sty
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Exercise 1
+## Exercise 1
 
 The data set birthweight.txt contains the birthweights of 188 newborn babies. We are interested in finding the underlying (population) mean μ of birthweights.
 
@@ -51,7 +55,271 @@ alpha = .05
 
 c) In the R-output of the test from b), also a confidence interval is given, but why is it different from the confidence interval found in a) and why is it one-sided?
 
-# Exercise 4
+## Exercise 2
+We study the power function of the two-sample t-test (see Section 1.9 of Assignment 0). For n=m=30, mu=180, nu=175 and sd=5, generate 1000 samples x=rnorm(n,mu,sd) and y=rnorm(m,nu,sd), and record the 1000 p-values for testing H0: mu=nu. You can evaluate the power (at point nu=175) of this t-test as fraction of p-values that are smaller than 0.05.
+```{r}
+n=m=30
+mu=180
+nu=175
+sd=5
+
+B=1000
+p=numeric(B)
+for (b in 1:B) {
+  x=rnorm(n,mu,sd);
+  y=rnorm(m,nu,sd);
+  p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
+a <- table(p)
+length(a[names(a)<0.05])/length(a)
+```
+
+a) Set n=m=30, mu=180 and sd=5. Calculate now the power of the t-test for every value of nu in the grid seq(175,185,by=0.25). Plot the power as a function of nu.
+```{r}
+n=m=30
+mu=180
+nus=seq(175,185,by=0.25)
+sd=5
+
+powers = numeric(length(nus))
+
+B=1000
+p=numeric(B)
+for (i in 1:length(nus)) {
+  nu = nus[i]
+  for (b in 1:B) {
+    x=rnorm(n,mu,sd);
+    y=rnorm(m,nu,sd);
+    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
+  a <- table(p)
+  powers[i] = length(a[names(a)<0.05])/length(a)
+} 
+powers_a = powers
+nus_a = nus
+
+plot1 = plot(nus_a, powers_a)
+```
+
+b) Set n=m=100, mu=180 and sd=5. Repeat the preceding exercise. Add the plot to the preceding plot.
+```{r}
+n=m=100
+mu=180
+nus=seq(175,185,by=0.25)
+sd=5
+
+powers = numeric(length(nus))
+
+B=1000
+p=numeric(B)
+for (i in 1:length(nus)) {
+  nu = nus[i]
+  for (b in 1:B) {
+    x=rnorm(n,mu,sd);
+    y=rnorm(m,nu,sd);
+    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
+  a <- table(p)
+  powers[i] = length(a[names(a)<0.05])/length(a)
+} 
+powers_b = powers
+nus_b = nus
+
+plot2 = plot(nus, powers)
+```
+
+c) Set n=m=30, mu=180 and sd=15. Repeat the preceding exercise.
+```{r, figures-side, fig.show="hold", out.width="50%"}
+n=m=30
+mu=180
+nus=seq(175,185,by=0.25)
+sd=15
+
+powers = numeric(length(nus))
+
+B=1000
+p=numeric(B)
+for (i in 1:length(nus)) {
+  nu = nus[i]
+  for (b in 1:B) {
+    x=rnorm(n,mu,sd);
+    y=rnorm(m,nu,sd);
+    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
+  a <- table(p)
+  powers[i] = length(a[names(a)<0.05])/length(a)
+} 
+powers_c = powers
+nus_c = nus
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(nus_a, powers_a, main="2a", xlab="nu", ylab="power")
+plot(nus_b, powers_b, main="2b", xlab="nu", ylab="power")
+plot(nus_c, powers_c, main="2c", xlab="nu", ylab="power")
+```
+
+d) Explain your findings.
+
+
+## Exercise 3
+A telecommunication company has entered the market for mobile phones in a new country. The company’s marketing manager conducts a survey of 200 new subscribers for mobile phones. The results of the survey are in the data set telephone.txt, which contains the first month bills X1 , . . . X200 , in euros.
+
+
+a) Make an appropriate plot of this data set. What marketing advice(s) would you give to the marketing manager? Are there any inconsistencies in the data? If so, try to fix these.
+
+```{r}
+telephone_data = read.table("telephone.txt",header=TRUE)
+
+# sorted data of firsth month bills
+sort(telephone_data$Bills)
+```
+If we look at the data, we see several participants that have a first month bill of €0. This does not seem plausible, as the company probably would not give out subscriptions for free. Therefore, we trim the data of zero-values.
+
+```{r}
+# row_sub = apply(dd, 1, function(row) all(row !=0 ))
+corrected_telephone_data = telephone_data[apply(telephone_data, 1, function(row) all(row !=0 )), ]
+
+par(mfrow=c(2,2))
+hist(telephone_data$Bills, xlab = "First month bills (€)", main = "data before correction")
+hist(corrected_telephone_data, xlab = "First month bills (€)", main = "data after correction")
+boxplot(telephone_data$Bills, ylab = "€")
+boxplot(corrected_telephone_data, ylab = "€")
+```
+We now see that the first bin in the histogram contains a lower frequency due to the removal of zero-values. Based on the boxplots, we see that most participants have relatively low phone bills. Therefore, we might advice the marketing manager to focus on budget subscriptions. 
+
+
+b) By using a bootstrap test with the test statistic T = median(X1,...,X200), test whether the data telephone.txt stems from the exponential distribution Exp(λ) with some λ from [0.01, 0.1].
+```{r}
+
+lamb = .05
+
+hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
+x = seq(0, length(corrected_telephone_data),length=1000)
+f = lamb*exp(-lamb*x )
+lines(x,f,col="blue",lwd=2)
+```
+
+```{r}
+t = median(corrected_telephone_data)
+B=1000
+tstar=numeric(B)
+n=length(corrected_telephone_data)
+for (i in 1:B){
+  xstar=rexp(n, lamb)
+  tstar[i]=median(xstar)}
+  hist(tstar,prob=T)
+  
+p_left=sum(tstar<t)/B
+p_right=sum(tstar>t)/B
+p=2*min(p_left,p_right)
+p_left;p_right;p
+```
+
+The p-value is .002, therefore, h0 is rejected. This means that the distribution of the data does not come from the exponential distribution with lambda = 1/median(data). 
+
+
+c) Construct a 95% bootstrap confidence interval for the population median of the sample.
+
+```{r}
+B=5000
+Tstar=numeric(B)
+T1 = median(corrected_telephone_data)
+
+for(i in 1:B) {
+  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Tstar[i]=median(Xstar) }
+  Tstar05=quantile(Tstar,0.05)
+  Tstar95=quantile(Tstar,0.95)
+  sum(Tstar<Tstar05)
+c(2*T1-Tstar95,2*T1-Tstar05)
+```
+The 95% bootstrap confidence interval for the population median of the telephone data is [20.7, 36.5] around its median T1=28.9.
+
+
+d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate λ and construct again a 95% confidence interval for the population median. Comment on your findings.
+
+First we will repeat the steps from question 1c, but with the sample mean in stead of the sample medians. 
+
+```{r}
+B=5000
+Tstar=numeric(B)
+T1 = median(corrected_telephone_data)
+
+for(i in 1:B) {
+  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Tstar[i]=mean(Xstar) 
+  }
+Tstar05=quantile(Tstar,0.05)
+Tstar95=quantile(Tstar,0.95)
+sum(Tstar<Tstar05)
+
+c(2*T1-Tstar95,2*T1-Tstar05)
+```
+
+<!-- We can translate the median of the samples to lambda since -->
+<!-- $median[X] = \frac{ln(2)}{\lambda}$ -->
+<!-- meaning: -->
+<!-- $\lambda = \frac{ln(2)}{median[X]}$ -->
+
+If we plot the means of the data, we get:
+```{r}
+hist(Tstar, prob=T)
+```
+
+We then check whether the data is normally distributed:
+```{r}
+shapiro.test(Tstar)
+```
+
+Therefore, the CLT applies. We can then obtain an estimate for $\lambda$ with:
+$\lambda = \frac{1}{\mu}$
+
+Giving us an estimate of:
+```{r}
+est_lamb = 1/(mean(Tstar))
+est_lamb
+```
+
+<!-- misschien dit hieronder weghalen -->
+If we plot the exponential distribution with $\lambda = .022$ against our data, we observe:
+```{r}
+hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
+x = seq(0, length(corrected_telephone_data),length=1000)
+f = est_lamb*exp(-est_lamb*x )
+lines(x,f,col="blue",lwd=2)
+```
+
+
+
+
+e) Using an appropriate test, test the null hypothesis that the median bill is bigger or equal to 40 euro against the alternative that the median bill is smaller than 40 euro. Next, design and perform a test
+to check whether the fraction of the bills less than 10 euro is less than 25%.
+
+
+An appropriate test to test the null hypothesis of a median greater than some value is the Wilcoxon test [leg uit wat de test doet]. 
+```{r}
+wilcox.test(corrected_telephone_data, mu=40, alternative="less")
+```
+
+We get a p-value of 1, implying that we should not reject H0. 
+
+Next, we test whether the fraction of the bills less than 10 euro is less than 25%. We can do this by bootstrapping a 25% confidence interval with a test statistic of 10.
+
+```{r}
+B=5000
+Tstar=numeric(B)
+T1 = 10
+
+for(i in 1:B) {
+  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Tstar[i]=sum(Xstar < T1) / length(Xstar)
+  }
+Tstar95=quantile(Tstar,0.95)
+Tstar95
+```
+
+Based on the one-sided 95% confidence interval, we can not conclude that 25% of the bills are less than 10 euro.[uitwerken]
+
+
+## Exercise 4
 
 To study the effect of energy drink a sample of 24 high school pupils were randomized to drinking either a
 softdrink or an energy drink after running for 60 meters. After half an hour they were asked to run again.
@@ -139,11 +407,55 @@ Experiment b takes the before drink times as control group and the after drink a
 Furthermore, the research question states that the increase in running times after drinking energy and control group limo needs to be researched, but then only the running times after drinking need to be taken into consideration since investigating the difference between before and after drinking also includes the proven decrease in running times when performing these intensive tasks shortly after each other. This effect works against what we want to investigate. This very same point of criticism also applies to question c since that question asks for the time difference between the before and after group.
 
 
+## Exercise 5. Chick weights
+The dataset chickwts is a data frame included in the standard R installation, to view it, type chickwts at the R prompt. This data frame contains 71 observations on newly-hatched chicks which were randomly allocated among six groups. Each group was given a different feed supplement for six weeks, after which their weight (in grams) was measured. The data frame consists of a numeric column giving the weights, and a factor column giving the name of the feed supplement.
 
+a) Test whether the distributions of the chicken weights for meatmeal and sunflower groups are different by performing three tests: the two samples t-test (argue whether the data are paired or not), the Mann-Whitney test and the Kolmogorov-Smirnov test. Comment on your findings.
+```{r}
+chickwts$feed
+sun = chickwts[chickwts$feed == "sunflower",]
+meat = chickwts[chickwts$feed == "meatmeal",]
+sun$weight; meat$weight
 
+t.test(sun$weight,meat$weight)
+wilcox.test(sun$weight,meat$weight)
 
+hist(sun$weight)
+hist(meat$weight)
 
+ks.test(sun$weight,meat$weight)
+```
+Welch two sample t-test p-value: 0.04
+Mann-Whitney test p-value: 0.07
+Kolmogorov-Smirnov test p-value: 0.1
 
+b) Conduct a one-way ANOVA to determine whether the type of feed supplement has an effect on the weight of the chicks. Give the estimated chick weights for each of the six feed supplements. What is the best feed supplement?
+```{r}
+chicks = chickwts
+sunflower = chickwts[chickwts$feed == "sunflower",]$weight
+meat = chickwts[chickwts$feed == "meatmeal",]$weight
+horse = chickwts[chickwts$feed == "horsebean",]$weight
+linseed = chickwts[chickwts$feed == "linseed",]$weight
+soy = chickwts[chickwts$feed == "soybean",]$weight
+cas = chickwts[chickwts$feed == "casein",]$weight
+sun; meat; horse; linseed; soy; cas
+
+boxplot(weight ~ feed, data=chickwts)
+stripchart(weight ~ feed, data=chickwts, vertical=TRUE)
+
+chickaov = lm(weight ~ feed, data = chickwts)
+anova(chickaov)
+```
+c) Check the ANOVA model assumptions by using relevant diagnostic tools.
+```{r}
+
+```
+
+d) Does the Kruskal-Wallis test arrive at the same conclusion about the effect of feed supplement as the test in b)? Explain possible differences between conclusions of the Kruskal-Wallis and ANOVA tests.
+```{r}
+attach(chickwts)
+kruskal.test(weight, feed)
+```
 
 
 

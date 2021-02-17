@@ -14,7 +14,7 @@ a) Make an appropriate plot of this data set. What marketing advice(s) would you
 ```{r}
 telephone_data = read.table("telephone.txt",header=TRUE)
 
-# sorted data
+# sorted data of firsth month bills
 sort(telephone_data$Bills)
 ```
 If we look at the data, we see several participants that have a first month bill of €0. This does not seem plausible, as the company probably would not give out subscriptions for free. Therefore, we trim the data of zero-values.
@@ -34,8 +34,8 @@ We now see that the first bin in the histogram contains a lower frequency due to
 
 b) By using a bootstrap test with the test statistic T = median(X1,...,X200), test whether the data telephone.txt stems from the exponential distribution Exp(λ) with some λ from [0.01, 0.1].
 ```{r}
-test_statistic = median(corrected_telephone_data)
-lamb = 1/test_statistic
+
+lamb = .05
 
 hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
 x = seq(0, length(corrected_telephone_data),length=1000)
@@ -82,33 +82,89 @@ The 95% bootstrap confidence interval for the population median of the telephone
 
 d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate λ and construct again a 95% confidence interval for the population median. Comment on your findings.
 
-We can translate the median of the samples to lambda since
-$median[X] = \frac{ln(2)}{\lambda}$
-which gives us:
-$\lambda = \frac{ln(2)}{median[X]}$
+First we will repeat the steps from question 1c, but with the sample mean in stead of the sample medians. 
 
-If we plot the medians of the data, we get:
+```{r}
+B=5000
+Tstar=numeric(B)
+T1 = median(corrected_telephone_data)
+
+for(i in 1:B) {
+  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Tstar[i]=mean(Xstar) 
+  }
+Tstar05=quantile(Tstar,0.05)
+Tstar95=quantile(Tstar,0.95)
+sum(Tstar<Tstar05)
+
+c(2*T1-Tstar95,2*T1-Tstar05)
+```
+
+<!-- We can translate the median of the samples to lambda since -->
+<!-- $median[X] = \frac{ln(2)}{\lambda}$ -->
+<!-- meaning: -->
+<!-- $\lambda = \frac{ln(2)}{median[X]}$ -->
+
+If we plot the means of the data, we get:
 ```{r}
 hist(Tstar, prob=T)
 ```
 
-We then check whether the lambdas are normally distributed:
+We then check whether the data is normally distributed:
 ```{r}
 shapiro.test(Tstar)
-
-mean_lamb = log(2)/mean(Tstar)
-mean_lamb
-
 ```
+
+Therefore, the CLT applies. We can then obtain an estimate for $\lambda$ with:
+$\lambda = \frac{1}{\mu}$
+
+Giving us an estimate of:
+```{r}
+est_lamb = 1/(mean(Tstar))
+est_lamb
+```
+
+<!-- misschien dit hieronder weghalen -->
+If we plot the exponential distribution with $\lambda = .022$ against our data, we observe:
+```{r}
+hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
+x = seq(0, length(corrected_telephone_data),length=1000)
+f = est_lamb*exp(-est_lamb*x )
+lines(x,f,col="blue",lwd=2)
+```
+
 
 
 
 e) Using an appropriate test, test the null hypothesis that the median bill is bigger or equal to 40 euro against the alternative that the median bill is smaller than 40 euro. Next, design and perform a test
 to check whether the fraction of the bills less than 10 euro is less than 25%.
 
-```{r}
 
+An appropriate test to test the null hypothesis of a median greater than some value is the Wilcoxon test [leg uit wat de test doet]. 
+```{r}
+wilcox.test(corrected_telephone_data, mu=40, alternative="less")
 ```
+
+We get a p-value of 1, implying that we should not reject H0. 
+
+Next, we test whether the fraction of the bills less than 10 euro is less than 25%. We can do this by bootstrapping a 25% confidence interval with a test statistic of 10.
+
+```{r}
+B=5000
+Tstar=numeric(B)
+T1 = 10
+
+for(i in 1:B) {
+  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Tstar[i]=sum(Xstar < T1) / length(Xstar)
+  }
+Tstar95=quantile(Tstar,0.95)
+Tstar95
+```
+
+Based on the one-sided 95% confidence interval, we can not conclude that 25% of the bills are less than 10 euro.[uitwerken]
+
+
 
 
 
