@@ -138,7 +138,7 @@ The 95% bootstrap confidence interval for the population median of the telephone
 
 d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate λ and construct again a 95% confidence interval for the population median. Comment on your findings.
 
-First we will repeat the steps from question 1c, but with the sample mean in stead of the sample medians. 
+We once again use the bootstrapping method to sample from the dataset. The mean of the samples is retrieved and next, 
 
 ```{r}
 B=5000
@@ -147,7 +147,8 @@ Tstar=numeric(B)
 for(i in 1:B) {
   Xstar=sample(corrected_tel_data,replace=TRUE)
   Tstar[i]=mean(Xstar) 
-  }
+}
+
 Tstar025=quantile(Tstar,0.025)
 Tstar975=quantile(Tstar,0.975)
 
@@ -156,7 +157,7 @@ c(2*population_median-Tstar975,2*population_median-Tstar025)
 ```
 
 
-If we plot the means of the data, we get:
+If we plot the means of the samples, we get:
 ```{r}
 hist(Tstar, prob=T)
 ```
