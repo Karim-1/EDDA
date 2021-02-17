@@ -53,109 +53,6 @@ alpha = .05
 
 c) In the R-output of the test from b), also a confidence interval is given, but why is it different from the confidence interval found in a) and why is it one-sided?
 
-## Exercise 2
-We study the power function of the two-sample t-test (see Section 1.9 of Assignment 0). For n=m=30, mu=180, nu=175 and sd=5, generate 1000 samples x=rnorm(n,mu,sd) and y=rnorm(m,nu,sd), and record the 1000 p-values for testing H0: mu=nu. You can evaluate the power (at point nu=175) of this t-test as fraction of p-values that are smaller than 0.05.
-```{r}
-n=m=30
-mu=180
-nu=175
-sd=5
-
-B=1000
-p=numeric(B)
-for (b in 1:B) {
-  x=rnorm(n,mu,sd);
-  y=rnorm(m,nu,sd);
-  p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
-a <- table(p)
-length(a[names(a)<0.05])/length(a)
-```
-
-a) Set n=m=30, mu=180 and sd=5. Calculate now the power of the t-test for every value of nu in the grid seq(175,185,by=0.25). Plot the power as a function of nu.
-```{r}
-n=m=30
-mu=180
-nus=seq(175,185,by=0.25)
-sd=5
-
-powers = numeric(length(nus))
-
-B=1000
-p=numeric(B)
-for (i in 1:length(nus)) {
-  nu = nus[i]
-  for (b in 1:B) {
-    x=rnorm(n,mu,sd);
-    y=rnorm(m,nu,sd);
-    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
-  a <- table(p)
-  powers[i] = length(a[names(a)<0.05])/length(a)
-} 
-powers_a = powers
-nus_a = nus
-
-plot1 = plot(nus_a, powers_a)
-```
-
-b) Set n=m=100, mu=180 and sd=5. Repeat the preceding exercise. Add the plot to the preceding plot.
-```{r}
-n=m=100
-mu=180
-nus=seq(175,185,by=0.25)
-sd=5
-
-powers = numeric(length(nus))
-
-B=1000
-p=numeric(B)
-for (i in 1:length(nus)) {
-  nu = nus[i]
-  for (b in 1:B) {
-    x=rnorm(n,mu,sd);
-    y=rnorm(m,nu,sd);
-    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
-  a <- table(p)
-  powers[i] = length(a[names(a)<0.05])/length(a)
-} 
-powers_b = powers
-nus_b = nus
-
-plot2 = plot(nus, powers)
-```
-
-c) Set n=m=30, mu=180 and sd=15. Repeat the preceding exercise.
-```{r, figures-side, fig.show="hold", out.width="50%"}
-n=m=30
-mu=180
-nus=seq(175,185,by=0.25)
-sd=15
-
-powers = numeric(length(nus))
-
-B=1000
-p=numeric(B)
-for (i in 1:length(nus)) {
-  nu = nus[i]
-  for (b in 1:B) {
-    x=rnorm(n,mu,sd);
-    y=rnorm(m,nu,sd);
-    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
-  a <- table(p)
-  powers[i] = length(a[names(a)<0.05])/length(a)
-} 
-powers_c = powers
-nus_c = nus
-```
-
-```{r}
-par(mfrow=c(2,2))
-plot(nus_a, powers_a, main="2a", xlab="nu", ylab="power")
-plot(nus_b, powers_b, main="2b", xlab="nu", ylab="power")
-plot(nus_c, powers_c, main="2c", xlab="nu", ylab="power")
-```
-
-d) Explain your findings.
-
 
 
 
@@ -185,8 +82,7 @@ boxplot(corrected_tel_data, ylab = "€", main = "data after correction")
 We now see that the first bin (containing €0-€10 subscriptions) in the histogram contains a lower frequency due to the removal of zero-values. Based on the boxplots, we see that the the median of the data is relatively low with regards to the total range of subscription-prices. This implies that a larger part of participants have relatively low phone bills. Therefore, we might advice the marketing manager to focus on low-price subscriptions. 
 
 
-b) We then test wether the data stems from an exponential distribution with $\lambda$ from [.01, .1] .by bootstrapping with the median as the test statistic. We use $\lambda=.03$.
-
+b) We then test wether the data stems from an exponential distribution with $\lambda$ from [.01, .1] .by bootstrapping with the median as the test statistic. 
 
 ```{r}
 lambdas = seq(.01, .1, .0005)
@@ -214,12 +110,13 @@ max_index_lamb = which.max(p_values)
 cat("lambda for p = .99:", lambdas[max_index_lamb])
 ```
 
-In the graph, we find a peak for $\lambda = .024$. This implies that the distribution of the data comes from an exponential distribution with $\lambda = .24$. 
+In the graph, we find a peak for $\lambda = .024$. This implies that the distribution of the data comes from an exponential distribution with $\lambda = .024$. 
 
 
-c) Construct a 95% bootstrap confidence interval for the population median of the sample.
+c) Next, we constract a 95% bootstrap confidence interval for the population median of the sample. This is done by iteratively resampling sub-datasets from the original dataset with replacement. We do this 5000 times, in order to get robust results.
 
 ```{r}
+set.seed(10)
 B=5000
 Tstar=numeric(B)
 T1 = median(corrected_tel_data)
@@ -227,12 +124,13 @@ T1 = median(corrected_tel_data)
 for(i in 1:B) {
   Xstar=sample(corrected_tel_data,replace=TRUE)
   Tstar[i]=median(Xstar) }
-  Tstar05=quantile(Tstar,0.05)
-  Tstar95=quantile(Tstar,0.95)
-  sum(Tstar<Tstar05)
-c(2*T1-Tstar95,2*T1-Tstar05)
+  Tstar025=quantile(Tstar,0.025)
+  Tstar975=quantile(Tstar,0.975)
+  
+  
+cat('95% CI [',2*T1-Tstar975, '-',2*T1-Tstar025,'] with population median:', mean(Tstar))
 ```
-The 95% bootstrap confidence interval for the population median of the telephone data is [20.7, 36.5] around its median T1=28.9.
+The 95% bootstrap confidence interval for the population median of the telephone data is [16.4, 37.7] around the population median (28.7).
 
 
 d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate λ and construct again a 95% confidence interval for the population median. Comment on your findings.
@@ -255,10 +153,6 @@ sum(Tstar<Tstar05)
 c(2*T1-Tstar95,2*T1-Tstar05)
 ```
 
-<!-- We can translate the median of the samples to lambda since -->
-<!-- $median[X] = \frac{ln(2)}{\lambda}$ -->
-<!-- meaning: -->
-<!-- $\lambda = \frac{ln(2)}{median[X]}$ -->
 
 If we plot the means of the data, we get:
 ```{r}
@@ -408,55 +302,8 @@ Experiment b takes the before drink times as control group and the after drink a
 Furthermore, the research question states that the increase in running times after drinking energy and control group limo needs to be researched, but then only the running times after drinking need to be taken into consideration since investigating the difference between before and after drinking also includes the proven decrease in running times when performing these intensive tasks shortly after each other. This effect works against what we want to investigate. This very same point of criticism also applies to question c since that question asks for the time difference between the before and after group.
 
 
-## Exercise 5. Chick weights
-The dataset chickwts is a data frame included in the standard R installation, to view it, type chickwts at the R prompt. This data frame contains 71 observations on newly-hatched chicks which were randomly allocated among six groups. Each group was given a different feed supplement for six weeks, after which their weight (in grams) was measured. The data frame consists of a numeric column giving the weights, and a factor column giving the name of the feed supplement.
 
-a) Test whether the distributions of the chicken weights for meatmeal and sunflower groups are different by performing three tests: the two samples t-test (argue whether the data are paired or not), the Mann-Whitney test and the Kolmogorov-Smirnov test. Comment on your findings.
-```{r}
-chickwts$feed
-sun = chickwts[chickwts$feed == "sunflower",]
-meat = chickwts[chickwts$feed == "meatmeal",]
-sun$weight; meat$weight
 
-t.test(sun$weight,meat$weight)
-wilcox.test(sun$weight,meat$weight)
-
-hist(sun$weight)
-hist(meat$weight)
-
-ks.test(sun$weight,meat$weight)
-```
-Welch two sample t-test p-value: 0.04
-Mann-Whitney test p-value: 0.07
-Kolmogorov-Smirnov test p-value: 0.1
-
-b) Conduct a one-way ANOVA to determine whether the type of feed supplement has an effect on the weight of the chicks. Give the estimated chick weights for each of the six feed supplements. What is the best feed supplement?
-```{r}
-chicks = chickwts
-sunflower = chickwts[chickwts$feed == "sunflower",]$weight
-meat = chickwts[chickwts$feed == "meatmeal",]$weight
-horse = chickwts[chickwts$feed == "horsebean",]$weight
-linseed = chickwts[chickwts$feed == "linseed",]$weight
-soy = chickwts[chickwts$feed == "soybean",]$weight
-cas = chickwts[chickwts$feed == "casein",]$weight
-sun; meat; horse; linseed; soy; cas
-
-boxplot(weight ~ feed, data=chickwts)
-stripchart(weight ~ feed, data=chickwts, vertical=TRUE)
-
-chickaov = lm(weight ~ feed, data = chickwts)
-anova(chickaov)
-```
-c) Check the ANOVA model assumptions by using relevant diagnostic tools.
-```{r}
-
-```
-
-d) Does the Kruskal-Wallis test arrive at the same conclusion about the effect of feed supplement as the test in b)? Explain possible differences between conclusions of the Kruskal-Wallis and ANOVA tests.
-```{r}
-attach(chickwts)
-kruskal.test(weight, feed)
-```
 
 
 
