@@ -237,6 +237,166 @@ p = .9864, therefore, h0 is accepted. If we try this for alpha = .05,
   a) and why is it one-sided?
 \end{enumerate}
 
+\hypertarget{exercise-2}{%
+\subsection{Exercise 2}\label{exercise-2}}
+
+We study the power function of the two-sample t-test (see Section 1.9 of
+Assignment 0). For n=m=30, mu=180, nu=175 and sd=5, generate 1000
+samples x=rnorm(n,mu,sd) and y=rnorm(m,nu,sd), and record the 1000
+p-values for testing H0: mu=nu. You can evaluate the power (at point
+nu=175) of this t-test as fraction of p-values that are smaller than
+0.05.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n}\OtherTok{=}\NormalTok{m}\OtherTok{=}\DecValTok{30}
+\NormalTok{mu}\OtherTok{=}\DecValTok{180}
+\NormalTok{nu}\OtherTok{=}\DecValTok{175}
+\NormalTok{sd}\OtherTok{=}\DecValTok{5}
+
+\NormalTok{B}\OtherTok{=}\DecValTok{1000}
+\NormalTok{p}\OtherTok{=}\FunctionTok{numeric}\NormalTok{(B)}
+\ControlFlowTok{for}\NormalTok{ (b }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{B) \{}
+\NormalTok{  x}\OtherTok{=}\FunctionTok{rnorm}\NormalTok{(n,mu,sd);}
+\NormalTok{  y}\OtherTok{=}\FunctionTok{rnorm}\NormalTok{(m,nu,sd);}
+\NormalTok{  p[b]}\OtherTok{=}\FunctionTok{t.test}\NormalTok{(x,y,}\AttributeTok{var.equal =} \ConstantTok{TRUE}\NormalTok{)[[}\DecValTok{3}\NormalTok{]]\}}
+\NormalTok{a }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(p)}
+\FunctionTok{length}\NormalTok{(a[}\FunctionTok{names}\NormalTok{(a)}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{])}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(a)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.59
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi})}
+\tightlist
+\item
+  Set n=m=30, mu=180 and sd=5. Calculate now the power of the t-test for
+  every value of nu in the grid seq(175,185,by=0.25). Plot the power as
+  a function of nu.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n}\OtherTok{=}\NormalTok{m}\OtherTok{=}\DecValTok{30}
+\NormalTok{mu}\OtherTok{=}\DecValTok{180}
+\NormalTok{nus}\OtherTok{=}\FunctionTok{seq}\NormalTok{(}\DecValTok{175}\NormalTok{,}\DecValTok{185}\NormalTok{,}\AttributeTok{by=}\FloatTok{0.25}\NormalTok{)}
+\NormalTok{sd}\OtherTok{=}\DecValTok{5}
+
+\NormalTok{powers }\OtherTok{=} \FunctionTok{numeric}\NormalTok{(}\FunctionTok{length}\NormalTok{(nus))}
+
+\NormalTok{B}\OtherTok{=}\DecValTok{1000}
+\NormalTok{p}\OtherTok{=}\FunctionTok{numeric}\NormalTok{(B)}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(nus)) \{}
+\NormalTok{  nu }\OtherTok{=}\NormalTok{ nus[i]}
+  \ControlFlowTok{for}\NormalTok{ (b }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{B) \{}
+\NormalTok{    x}\OtherTok{=}\FunctionTok{rnorm}\NormalTok{(n,mu,sd);}
+\NormalTok{    y}\OtherTok{=}\FunctionTok{rnorm}\NormalTok{(m,nu,sd);}
+\NormalTok{    p[b]}\OtherTok{=}\FunctionTok{t.test}\NormalTok{(x,y,}\AttributeTok{var.equal =} \ConstantTok{TRUE}\NormalTok{)[[}\DecValTok{3}\NormalTok{]]\}}
+\NormalTok{  a }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(p)}
+\NormalTok{  powers[i] }\OtherTok{=} \FunctionTok{length}\NormalTok{(a[}\FunctionTok{names}\NormalTok{(a)}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{])}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(a)}
+\NormalTok{\} }
+\NormalTok{powers\_a }\OtherTok{=}\NormalTok{ powers}
+\NormalTok{nus\_a }\OtherTok{=}\NormalTok{ nus}
+
+\NormalTok{plot1 }\OtherTok{=} \FunctionTok{plot}\NormalTok{(nus\_a, powers\_a)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi})}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Set n=m=100, mu=180 and sd=5. Repeat the preceding exercise. Add the
+  plot to the preceding plot.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n}\OtherTok{=}\NormalTok{m}\OtherTok{=}\DecValTok{100}
+\NormalTok{mu}\OtherTok{=}\DecValTok{180}
+\NormalTok{nus}\OtherTok{=}\FunctionTok{seq}\NormalTok{(}\DecValTok{175}\NormalTok{,}\DecValTok{185}\NormalTok{,}\AttributeTok{by=}\FloatTok{0.25}\NormalTok{)}
+\NormalTok{sd}\OtherTok{=}\DecValTok{5}
+
+\NormalTok{powers }\OtherTok{=} \FunctionTok{numeric}\NormalTok{(}\FunctionTok{length}\NormalTok{(nus))}
+
+\NormalTok{B}\OtherTok{=}\DecValTok{1000}
+\NormalTok{p}\OtherTok{=}\FunctionTok{numeric}\NormalTok{(B)}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(nus)) \{}
+\NormalTok{  nu }\OtherTok{=}\NormalTok{ nus[i]}
+  \ControlFlowTok{for}\NormalTok{ (b }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{B) \{}
+\NormalTok{    x}\OtherTok{=}\FunctionTok{rnorm}\NormalTok{(n,mu,sd);}
+\NormalTok{    y}\OtherTok{=}\FunctionTok{rnorm}\NormalTok{(m,nu,sd);}
+\NormalTok{    p[b]}\OtherTok{=}\FunctionTok{t.test}\NormalTok{(x,y,}\AttributeTok{var.equal =} \ConstantTok{TRUE}\NormalTok{)[[}\DecValTok{3}\NormalTok{]]\}}
+\NormalTok{  a }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(p)}
+\NormalTok{  powers[i] }\OtherTok{=} \FunctionTok{length}\NormalTok{(a[}\FunctionTok{names}\NormalTok{(a)}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{])}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(a)}
+\NormalTok{\} }
+\NormalTok{powers\_b }\OtherTok{=}\NormalTok{ powers}
+\NormalTok{nus\_b }\OtherTok{=}\NormalTok{ nus}
+
+\NormalTok{plot2 }\OtherTok{=} \FunctionTok{plot}\NormalTok{(nus, powers)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi})}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Set n=m=30, mu=180 and sd=15. Repeat the preceding exercise.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n}\OtherTok{=}\NormalTok{m}\OtherTok{=}\DecValTok{30}
+\NormalTok{mu}\OtherTok{=}\DecValTok{180}
+\NormalTok{nus}\OtherTok{=}\FunctionTok{seq}\NormalTok{(}\DecValTok{175}\NormalTok{,}\DecValTok{185}\NormalTok{,}\AttributeTok{by=}\FloatTok{0.25}\NormalTok{)}
+\NormalTok{sd}\OtherTok{=}\DecValTok{15}
+
+\NormalTok{powers }\OtherTok{=} \FunctionTok{numeric}\NormalTok{(}\FunctionTok{length}\NormalTok{(nus))}
+
+\NormalTok{B}\OtherTok{=}\DecValTok{1000}
+\NormalTok{p}\OtherTok{=}\FunctionTok{numeric}\NormalTok{(B)}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(nus)) \{}
+\NormalTok{  nu }\OtherTok{=}\NormalTok{ nus[i]}
+  \ControlFlowTok{for}\NormalTok{ (b }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{B) \{}
+\NormalTok{    x}\OtherTok{=}\FunctionTok{rnorm}\NormalTok{(n,mu,sd);}
+\NormalTok{    y}\OtherTok{=}\FunctionTok{rnorm}\NormalTok{(m,nu,sd);}
+\NormalTok{    p[b]}\OtherTok{=}\FunctionTok{t.test}\NormalTok{(x,y,}\AttributeTok{var.equal =} \ConstantTok{TRUE}\NormalTok{)[[}\DecValTok{3}\NormalTok{]]\}}
+\NormalTok{  a }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(p)}
+\NormalTok{  powers[i] }\OtherTok{=} \FunctionTok{length}\NormalTok{(a[}\FunctionTok{names}\NormalTok{(a)}\SpecialCharTok{\textless{}}\FloatTok{0.05}\NormalTok{])}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(a)}
+\NormalTok{\} }
+\NormalTok{powers\_c }\OtherTok{=}\NormalTok{ powers}
+\NormalTok{nus\_c }\OtherTok{=}\NormalTok{ nus}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow=}\FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(nus\_a, powers\_a, }\AttributeTok{main=}\StringTok{"2a"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"nu"}\NormalTok{, }\AttributeTok{ylab=}\StringTok{"power"}\NormalTok{)}
+\FunctionTok{plot}\NormalTok{(nus\_b, powers\_b, }\AttributeTok{main=}\StringTok{"2b"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"nu"}\NormalTok{, }\AttributeTok{ylab=}\StringTok{"power"}\NormalTok{)}
+\FunctionTok{plot}\NormalTok{(nus\_c, powers\_c, }\AttributeTok{main=}\StringTok{"2c"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"nu"}\NormalTok{, }\AttributeTok{ylab=}\StringTok{"power"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-9-1.pdf}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi})}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Explain your findings.
+\end{enumerate}
+
 \hypertarget{exercise-3}{%
 \subsection{Exercise 3}\label{exercise-3}}
 
@@ -386,7 +546,7 @@ of zero-values.
 ## conversion failure on '€' in 'mbcsToSbcs': dot substituted for <ac>
 \end{verbatim}
 
-\includegraphics{assignment1_files/figure-latex/unnamed-chunk-7-1.pdf}
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-11-1.pdf}
 We now see that the first bin in the histogram contains a lower
 frequency due to the removal of zero-values. Based on the boxplots, we
 see that most participants have relatively low phone bills. Therefore,
@@ -413,7 +573,7 @@ we might advice the marketing manager to focus on budget subscriptions.
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{assignment1_files/figure-latex/unnamed-chunk-8-1.pdf}
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-12-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -428,7 +588,7 @@ we might advice the marketing manager to focus on budget subscriptions.
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{assignment1_files/figure-latex/unnamed-chunk-9-1.pdf}
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-13-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -480,7 +640,7 @@ with lambda = 1/median(data).
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 231
+## [1] 250
 \end{verbatim}
 
 \begin{Shaded}
@@ -490,8 +650,8 @@ with lambda = 1/median(data).
 \end{Shaded}
 
 \begin{verbatim}
-##    95%     5% 
-## 20.925 36.145
+##      95%       5% 
+## 20.54500 36.16025
 \end{verbatim}
 
 The 95\% bootstrap confidence interval for the population median of the
@@ -538,7 +698,7 @@ mean in stead of the sample medians.
 
 \begin{verbatim}
 ##       95%        5% 
-##  7.633276 16.949885
+##  7.766602 16.916208
 \end{verbatim}
 
 If we plot the means of the data, we get:
@@ -549,7 +709,7 @@ If we plot the means of the data, we get:
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{assignment1_files/figure-latex/unnamed-chunk-12-1.pdf}
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-16-1.pdf}
 
 We then check whether the data is normally distributed:
 
@@ -564,7 +724,7 @@ We then check whether the data is normally distributed:
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  Tstar
-## W = 0.99967, p-value = 0.6088
+## W = 0.9996, p-value = 0.4239
 \end{verbatim}
 
 Therefore, the CLT applies. We can then obtain an estimate for
@@ -580,7 +740,7 @@ Giving us an estimate of:
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 0.02200336
+## [1] 0.02204547
 \end{verbatim}
 
 If we plot the exponential distribution with \(\lambda = .022\) against
@@ -595,7 +755,7 @@ our data, we observe:
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{assignment1_files/figure-latex/unnamed-chunk-15-1.pdf}
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-19-1.pdf}
 
 \begin{enumerate}
 \def\labelenumi{\alph{enumi})}
@@ -714,7 +874,7 @@ Assumption for normality met since both p-values are larger than 0.05.
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{assignment1_files/figure-latex/unnamed-chunk-20-1.pdf}
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-24-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -955,5 +1115,253 @@ times when performing these intensive tasks shortly after each other.
 This effect works against what we want to investigate. This very same
 point of criticism also applies to question c since that question asks
 for the time difference between the before and after group.
+
+\hypertarget{exercise-5.-chick-weights}{%
+\subsection{Exercise 5. Chick weights}\label{exercise-5.-chick-weights}}
+
+The dataset chickwts is a data frame included in the standard R
+installation, to view it, type chickwts at the R prompt. This data frame
+contains 71 observations on newly-hatched chicks which were randomly
+allocated among six groups. Each group was given a different feed
+supplement for six weeks, after which their weight (in grams) was
+measured. The data frame consists of a numeric column giving the
+weights, and a factor column giving the name of the feed supplement.
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi})}
+\tightlist
+\item
+  Test whether the distributions of the chicken weights for meatmeal and
+  sunflower groups are different by performing three tests: the two
+  samples t-test (argue whether the data are paired or not), the
+  Mann-Whitney test and the Kolmogorov-Smirnov test. Comment on your
+  findings.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{chickwts}\SpecialCharTok{$}\NormalTok{feed}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] horsebean horsebean horsebean horsebean horsebean horsebean horsebean
+##  [8] horsebean horsebean horsebean linseed   linseed   linseed   linseed  
+## [15] linseed   linseed   linseed   linseed   linseed   linseed   linseed  
+## [22] linseed   soybean   soybean   soybean   soybean   soybean   soybean  
+## [29] soybean   soybean   soybean   soybean   soybean   soybean   soybean  
+## [36] soybean   sunflower sunflower sunflower sunflower sunflower sunflower
+## [43] sunflower sunflower sunflower sunflower sunflower sunflower meatmeal 
+## [50] meatmeal  meatmeal  meatmeal  meatmeal  meatmeal  meatmeal  meatmeal 
+## [57] meatmeal  meatmeal  meatmeal  casein    casein    casein    casein   
+## [64] casein    casein    casein    casein    casein    casein    casein   
+## [71] casein   
+## Levels: casein horsebean linseed meatmeal soybean sunflower
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{sun }\OtherTok{=}\NormalTok{ chickwts[chickwts}\SpecialCharTok{$}\NormalTok{feed }\SpecialCharTok{==} \StringTok{"sunflower"}\NormalTok{,]}
+\NormalTok{meat }\OtherTok{=}\NormalTok{ chickwts[chickwts}\SpecialCharTok{$}\NormalTok{feed }\SpecialCharTok{==} \StringTok{"meatmeal"}\NormalTok{,]}
+\NormalTok{sun}\SpecialCharTok{$}\NormalTok{weight; meat}\SpecialCharTok{$}\NormalTok{weight}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] 423 340 392 339 341 226 320 295 334 322 297 318
+\end{verbatim}
+
+\begin{verbatim}
+##  [1] 325 257 303 315 380 153 263 242 206 344 258
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{t.test}\NormalTok{(sun}\SpecialCharTok{$}\NormalTok{weight,meat}\SpecialCharTok{$}\NormalTok{weight)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Welch Two Sample t-test
+## 
+## data:  sun$weight and meat$weight
+## t = 2.1564, df = 18.535, p-value = 0.04441
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##    1.442716 102.572435
+## sample estimates:
+## mean of x mean of y 
+##  328.9167  276.9091
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{wilcox.test}\NormalTok{(sun}\SpecialCharTok{$}\NormalTok{weight,meat}\SpecialCharTok{$}\NormalTok{weight)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Wilcoxon rank sum exact test
+## 
+## data:  sun$weight and meat$weight
+## W = 96, p-value = 0.06882
+## alternative hypothesis: true location shift is not equal to 0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(sun}\SpecialCharTok{$}\NormalTok{weight)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-28-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(meat}\SpecialCharTok{$}\NormalTok{weight)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-28-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ks.test}\NormalTok{(sun}\SpecialCharTok{$}\NormalTok{weight,meat}\SpecialCharTok{$}\NormalTok{weight)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Two-sample Kolmogorov-Smirnov test
+## 
+## data:  sun$weight and meat$weight
+## D = 0.47727, p-value = 0.1085
+## alternative hypothesis: two-sided
+\end{verbatim}
+
+Welch two sample t-test p-value: 0.04 Mann-Whitney test p-value: 0.07
+Kolmogorov-Smirnov test p-value: 0.1
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi})}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Conduct a one-way ANOVA to determine whether the type of feed
+  supplement has an effect on the weight of the chicks. Give the
+  estimated chick weights for each of the six feed supplements. What is
+  the best feed supplement?
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{chicks }\OtherTok{=}\NormalTok{ chickwts}
+\NormalTok{sunflower }\OtherTok{=}\NormalTok{ chickwts[chickwts}\SpecialCharTok{$}\NormalTok{feed }\SpecialCharTok{==} \StringTok{"sunflower"}\NormalTok{,]}\SpecialCharTok{$}\NormalTok{weight}
+\NormalTok{meat }\OtherTok{=}\NormalTok{ chickwts[chickwts}\SpecialCharTok{$}\NormalTok{feed }\SpecialCharTok{==} \StringTok{"meatmeal"}\NormalTok{,]}\SpecialCharTok{$}\NormalTok{weight}
+\NormalTok{horse }\OtherTok{=}\NormalTok{ chickwts[chickwts}\SpecialCharTok{$}\NormalTok{feed }\SpecialCharTok{==} \StringTok{"horsebean"}\NormalTok{,]}\SpecialCharTok{$}\NormalTok{weight}
+\NormalTok{linseed }\OtherTok{=}\NormalTok{ chickwts[chickwts}\SpecialCharTok{$}\NormalTok{feed }\SpecialCharTok{==} \StringTok{"linseed"}\NormalTok{,]}\SpecialCharTok{$}\NormalTok{weight}
+\NormalTok{soy }\OtherTok{=}\NormalTok{ chickwts[chickwts}\SpecialCharTok{$}\NormalTok{feed }\SpecialCharTok{==} \StringTok{"soybean"}\NormalTok{,]}\SpecialCharTok{$}\NormalTok{weight}
+\NormalTok{cas }\OtherTok{=}\NormalTok{ chickwts[chickwts}\SpecialCharTok{$}\NormalTok{feed }\SpecialCharTok{==} \StringTok{"casein"}\NormalTok{,]}\SpecialCharTok{$}\NormalTok{weight}
+\NormalTok{sun; meat; horse; linseed; soy; cas}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    weight      feed
+## 37    423 sunflower
+## 38    340 sunflower
+## 39    392 sunflower
+## 40    339 sunflower
+## 41    341 sunflower
+## 42    226 sunflower
+## 43    320 sunflower
+## 44    295 sunflower
+## 45    334 sunflower
+## 46    322 sunflower
+## 47    297 sunflower
+## 48    318 sunflower
+\end{verbatim}
+
+\begin{verbatim}
+##  [1] 325 257 303 315 380 153 263 242 206 344 258
+\end{verbatim}
+
+\begin{verbatim}
+##  [1] 179 160 136 227 217 168 108 124 143 140
+\end{verbatim}
+
+\begin{verbatim}
+##  [1] 309 229 181 141 260 203 148 169 213 257 244 271
+\end{verbatim}
+
+\begin{verbatim}
+##  [1] 243 230 248 327 329 250 193 271 316 267 199 171 158 248
+\end{verbatim}
+
+\begin{verbatim}
+##  [1] 368 390 379 260 404 318 352 359 216 222 283 332
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{boxplot}\NormalTok{(weight }\SpecialCharTok{\textasciitilde{}}\NormalTok{ feed, }\AttributeTok{data=}\NormalTok{chickwts)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-29-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{stripchart}\NormalTok{(weight }\SpecialCharTok{\textasciitilde{}}\NormalTok{ feed, }\AttributeTok{data=}\NormalTok{chickwts, }\AttributeTok{vertical=}\ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{assignment1_files/figure-latex/unnamed-chunk-29-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{chickaov }\OtherTok{=} \FunctionTok{lm}\NormalTok{(weight }\SpecialCharTok{\textasciitilde{}}\NormalTok{ feed, }\AttributeTok{data =}\NormalTok{ chickwts)}
+\FunctionTok{anova}\NormalTok{(chickaov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Analysis of Variance Table
+## 
+## Response: weight
+##           Df Sum Sq Mean Sq F value    Pr(>F)    
+## feed       5 231129   46226  15.365 5.936e-10 ***
+## Residuals 65 195556    3009                      
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi})}
+\setcounter{enumi}{2}
+\item
+  Check the ANOVA model assumptions by using relevant diagnostic tools.
+\item
+  Does the Kruskal-Wallis test arrive at the same conclusion about the
+  effect of feed supplement as the test in b)? Explain possible
+  differences between conclusions of the Kruskal-Wallis and ANOVA tests.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{attach}\NormalTok{(chickwts)}
+\FunctionTok{kruskal.test}\NormalTok{(weight, feed)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Kruskal-Wallis rank sum test
+## 
+## data:  weight and feed
+## Kruskal-Wallis chi-squared = 37.343, df = 5, p-value = 5.113e-07
+\end{verbatim}
 
 \end{document}

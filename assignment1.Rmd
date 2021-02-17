@@ -16,7 +16,6 @@ Karim Semin (VU: ksn222 / UvA: 11285990)
 
 
 ## Exercise 1
-
 The data set birthweight.txt contains the birthweights of 188 newborn babies. We are interested in finding the underlying (population) mean μ of birthweights.
 
 a) Check normality of the data. Compute a point estimate for μ. Derive, assuming normality (irrespective of your conclusion about normality od the data), a bounded 90% confidence interval for μ.
@@ -54,11 +53,137 @@ t.test(birthweight, alternative = "l", conf.level = 1-alpha, mu = 2800)[3]
 alpha = .05
 ```
 
-
-
 c) In the R-output of the test from b), also a confidence interval is given, but why is it different from the confidence interval found in a) and why is it one-sided?
 
 
+## Exercise 2
+We study the power function of the two-sample t-test (see Section 1.9 of Assignment 0). For n=m=30, mu=180, nu=175 and sd=5, generate 1000 samples x=rnorm(n,mu,sd) and y=rnorm(m,nu,sd), and record the 1000 p-values for testing H0: mu=nu. You can evaluate the power (at point nu=175) of this t-test as fraction of p-values that are smaller than 0.05.
+```{r}
+n=m=30
+mu=180
+nu=175
+sd=5
+
+B=1000
+p=numeric(B)
+for (b in 1:B) {
+  x=rnorm(n,mu,sd);
+  y=rnorm(m,nu,sd);
+  p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
+a <- table(p)
+length(a[names(a)<0.05])/length(a)
+```
+From the 1000 generated samples a fraction of 0.577 samples have p-values lower than 0.05.
+
+a) Set n=m=30, mu=180 and sd=5. Calculate now the power of the t-test for every value of nu in the grid seq(175,185,by=0.25). Plot the power as a function of nu.
+```{r}
+n=m=30
+mu=180
+nus=seq(175,185,by=0.25)
+sd=5
+
+powers = numeric(length(nus))
+
+B=1000
+p=numeric(B)
+for (i in 1:length(nus)) {
+  nu = nus[i]
+  for (b in 1:B) {
+    x=rnorm(n,mu,sd);
+    y=rnorm(m,nu,sd);
+    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
+  a <- table(p)
+  powers[i] = length(a[names(a)<0.05])/length(a)
+} 
+powers_a = powers
+nus_a = nus
+
+plot1 = plot(nus_a, powers_a)
+```
+
+b) Set n=m=100, mu=180 and sd=5. Repeat the preceding exercise. Add the plot to the preceding plot.
+```{r}
+n=m=100
+mu=180
+nus=seq(175,185,by=0.25)
+sd=5
+
+powers = numeric(length(nus))
+
+B=1000
+p=numeric(B)
+for (i in 1:length(nus)) {
+  nu = nus[i]
+  for (b in 1:B) {
+    x=rnorm(n,mu,sd);
+    y=rnorm(m,nu,sd);
+    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
+  a <- table(p)
+  powers[i] = length(a[names(a)<0.05])/length(a)
+} 
+powers_b = powers
+nus_b = nus
+
+# plot2 = plot(nus, powers)
+```
+
+c) Set n=m=30, mu=180 and sd=15. Repeat the preceding exercise.
+```{r, figures-side, fig.show="hold", out.width="50%"}
+n=m=30
+mu=180
+nus=seq(175,185,by=0.25)
+sd=15
+
+powers = numeric(length(nus))
+
+B=1000
+p=numeric(B)
+for (i in 1:length(nus)) {
+  nu = nus[i]
+  for (b in 1:B) {
+    x=rnorm(n,mu,sd);
+    y=rnorm(m,nu,sd);
+    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
+  a <- table(p)
+  powers[i] = length(a[names(a)<0.05])/length(a)
+} 
+powers_c = powers
+nus_c = nus
+```
+
+```{r}
+plot(nus_a, powers_a, main="Results 2", xlab="nu", ylab="fraction of power < 0.05", pch=20, col="blue")
+lines(nus_a, powers_a, xlab="nu", pch=20, col="blue")
+points(nus_b, powers_b, xlab="nu", pch=20, col="red")
+lines(nus_b, powers_b, xlab="nu", pch=20, col="red")
+points(nus_c, powers_c, xlab="nu", pch=20, col="green")
+lines(nus_c, powers_c, xlab="nu", pch=20, col="green")
+legend(184, 0.5, legend=c("a", "b", "c"), col=c("blue", "red", "green"), lty=1, cex=0.8)
+```
+
+d) Explain your findings.
+The graph shows the findings of question a, b and c. It is clearly shown that depending on the
+
+difference between a and b is 30 and 100 samples, respectively.
+so more samples in b, result in more fluctuations
+so nu 176 gives a power of <0.1 while nu 178 gives a power of approx. 0.7.
+mu = 180. so shouldnt nu 176 be a higher power? because further away from 180, so "easier" to detect that mu != nu and thus H0 false, or p < 0.05
+
+difference between a and c is a sd of 5 and 15 respectively.
+
+The findings of question c show that an increase in standard deviation will decrease the power of a t-test. A possible explanation for this could be that because of the higher standard deviation.   
+
+
+mu is constant at 180.
+n and m are same (samples)
+test if mu=nu
+nu ranges from 175-185
+
+Y-axis shows the fraction of p-values < 0.05. So the amount of times were it was determined that mu does not equal nu.
+
+a = n=m=30, mu=180 and sd=5
+b = n=m=100, mu=180 and sd=5
+c = n=m=30, mu=180 and sd=15
 
 
 ## Exercise 3
@@ -365,7 +490,6 @@ d) Does the Kruskal-Wallis test arrive at the same conclusion about the effect o
 
 The ANOVA gives a p-value that states the probability that the means of three or more groups are equal. When the p-value is considered significant, then we can conclude that the mean of at least one group is different from the others.
 The Kruskal-wallis test is also able to compare distributions, but than for two groups rather than three or more. In addition to this, the Kruskal-wallis test bases its p-value on the largest discrepancy between two cummulative density frequency distributions from the two samples rather than the means.
-
 
 
 
