@@ -165,8 +165,8 @@ Kolmogorov-Smirnov test p-value: 0.1
 
 b) Conduct a one-way ANOVA to determine whether the type of feed supplement has an effect on the weight of the chicks. Give the estimated chick weights for each of the six feed supplements. What is the best feed supplement?
 ```{r}
-chickwts
-sun = chickwts[chickwts$feed == "sunflower",]$weight
+chicks = chickwts
+sunflower = chickwts[chickwts$feed == "sunflower",]$weight
 meat = chickwts[chickwts$feed == "meatmeal",]$weight
 horse = chickwts[chickwts$feed == "horsebean",]$weight
 linseed = chickwts[chickwts$feed == "linseed",]$weight
@@ -174,9 +174,18 @@ soy = chickwts[chickwts$feed == "soybean",]$weight
 cas = chickwts[chickwts$feed == "casein",]$weight
 sun; meat; horse; linseed; soy; cas
 
+boxplot(weight ~ feed, data=chickwts)
+stripchart(weight ~ feed, data=chickwts, vertical=TRUE)
+
+chickaov = lm(weight ~ feed, data = chickwts)
+anova(chickaov)
 ```
 
 c) Check the ANOVA model assumptions by using relevant diagnostic tools.
 
 d) Does the Kruskal-Wallis test arrive at the same conclusion about the effect of feed supplement as the test in b)? Explain possible differences between conclusions of the Kruskal-Wallis and ANOVA tests.
+```{r}
+attach(chickwts)
+kruskal.test(weight, feed)
+```
 
