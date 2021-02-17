@@ -1,14 +1,13 @@
 ---
 title: "Assignment 1 -- Experimental Design and Data Analysis"
 output: 
-  pdf_document:
-    includes:
-      before_body: title.sty
+  html_document
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(digits=3)
 ```
 
 ## Exercise 1
@@ -48,7 +47,6 @@ alpha = .05
 t.test(birthweight, alternative = "l", conf.level = 1-alpha, mu = 2800)[3]
 
 alpha = .05
-
 ```
 
 
@@ -56,61 +54,64 @@ alpha = .05
 c) In the R-output of the test from b), also a confidence interval is given, but why is it different from the confidence interval found in a) and why is it one-sided?
 
 
+
+
 ## Exercise 3
-A telecommunication company has entered the market for mobile phones in a new country. The company’s marketing manager conducts a survey of 200 new subscribers for mobile phones. The results of the survey are in the data set telephone.txt, which contains the first month bills X1 , . . . X200 , in euros.
 
-
-a) Make an appropriate plot of this data set. What marketing advice(s) would you give to the marketing manager? Are there any inconsistencies in the data? If so, try to fix these.
-
-```{r}
-telephone_data = read.table("telephone.txt",header=TRUE)
-
-# sorted data of firsth month bills
-sort(telephone_data$Bills)
+a) If we plot the telephone.txt data set, we observe the following plot:
+```{r echo=FALSE}
+tel_data = read.table("telephone.txt",header=TRUE)
 ```
-If we look at the data, we see several participants that have a first month bill of €0. This does not seem plausible, as the company probably would not give out subscriptions for free. Therefore, we trim the data of zero-values.
+If we observe the data, we see several participants that have a first month bill of €0. This does not seem plausible, as the company probably would not give out subscriptions for free. Therefore, we trim the data of zero-values.
 
 ```{r}
-# row_sub = apply(dd, 1, function(row) all(row !=0 ))
-corrected_telephone_data = telephone_data[apply(telephone_data, 1, function(row) all(row !=0 )), ]
+# remove 0-values
+corrected_tel_data = tel_data[apply(tel_data, 1, function(row) all(row !=0 )), ]
 
-par(mfrow=c(2,2))
-hist(telephone_data$Bills, xlab = "First month bills (€)", main = "data before correction")
-hist(corrected_telephone_data, xlab = "First month bills (€)", main = "data after correction")
-boxplot(telephone_data$Bills, ylab = "€")
-boxplot(corrected_telephone_data, ylab = "€")
-```
-We now see that the first bin in the histogram contains a lower frequency due to the removal of zero-values. Based on the boxplots, we see that most participants have relatively low phone bills. Therefore, we might advice the marketing manager to focus on budget subscriptions. 
+# plot histograms
+par(mfrow=c(1,2))
+hist(tel_data$Bills, xlab = "First month bills (€)", main = "data before correction", ylim = c(0,55))
+hist(corrected_tel_data, xlab = "First month bills (€)", main = "data after correction", ylim = c(0,55))
 
-
-b) By using a bootstrap test with the test statistic T = median(X1,...,X200), test whether the data telephone.txt stems from the exponential distribution Exp(λ) with some λ from [0.01, 0.1].
-```{r}
-
-lamb = .05
-
-hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
-x = seq(0, length(corrected_telephone_data),length=1000)
-f = lamb*exp(-lamb*x )
-lines(x,f,col="blue",lwd=2)
+# plot boxplots
+par(mfrow=c(1,2))
+boxplot(tel_data$Bills, ylab = "€", main = "data before correction")
+boxplot(corrected_tel_data, ylab = "€", main = "data after correction")
 ```
 
+We now see that the first bin (containing €0-€10 subscriptions) in the histogram contains a lower frequency due to the removal of zero-values. Based on the boxplots, we see that the the median of the data is relatively low with regards to the total range of subscription-prices. This implies that a larger part of participants have relatively low phone bills. Therefore, we might advice the marketing manager to focus on low-price subscriptions. 
+
+
+b) We then test wether the data stems from an exponential distribution with $\lambda$ from [.01, .1] .by bootstrapping with the median as the test statistic. We use $\lambda=.03$.
+
+
 ```{r}
-t = median(corrected_telephone_data)
+lambdas = seq(.01, .1, .0005)
+t = median(corrected_tel_data)
 B=1000
 tstar=numeric(B)
-n=length(corrected_telephone_data)
-for (i in 1:B){
-  xstar=rexp(n, lamb)
-  tstar[i]=median(xstar)}
-  hist(tstar,prob=T)
-  
-p_left=sum(tstar<t)/B
-p_right=sum(tstar>t)/B
-p=2*min(p_left,p_right)
-p_left;p_right;p
+n=length(corrected_tel_data)
+p_values = c()
+
+for(lamb in lambdas){
+  for (i in 1:B){
+    xstar=rexp(n, lamb)
+    tstar[i]=median(xstar)}
+    
+  p_left=sum(tstar<t)/B
+  p_right=sum(tstar>t)/B
+  p = 2*min(p_left,p_right)
+  p_values = c(p_values, p)
+}
+
+plot(lambdas, p_values, main = "P-values for lambda = [.01, 1]", xlab="lambda", ylab="p-values", pch=20)
+
+max_index_lamb = which.max(p_values)
+
+cat("lambda for p = .99:", lambdas[max_index_lamb])
 ```
 
-The p-value is .002, therefore, h0 is rejected. This means that the distribution of the data does not come from the exponential distribution with lambda = 1/median(data). 
+In the graph, we find a peak for $\lambda = .024$. This implies that the distribution of the data comes from an exponential distribution with $\lambda = .24$. 
 
 
 c) Construct a 95% bootstrap confidence interval for the population median of the sample.
@@ -118,10 +119,10 @@ c) Construct a 95% bootstrap confidence interval for the population median of th
 ```{r}
 B=5000
 Tstar=numeric(B)
-T1 = median(corrected_telephone_data)
+T1 = median(corrected_tel_data)
 
 for(i in 1:B) {
-  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Xstar=sample(corrected_tel_data,replace=TRUE)
   Tstar[i]=median(Xstar) }
   Tstar05=quantile(Tstar,0.05)
   Tstar95=quantile(Tstar,0.95)
@@ -138,10 +139,10 @@ First we will repeat the steps from question 1c, but with the sample mean in ste
 ```{r}
 B=5000
 Tstar=numeric(B)
-T1 = median(corrected_telephone_data)
+T1 = median(corrected_tel_data)
 
 for(i in 1:B) {
-  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Xstar=sample(corrected_tel_data,replace=TRUE)
   Tstar[i]=mean(Xstar) 
   }
 Tstar05=quantile(Tstar,0.05)
@@ -178,8 +179,8 @@ est_lamb
 <!-- misschien dit hieronder weghalen -->
 If we plot the exponential distribution with $\lambda = .022$ against our data, we observe:
 ```{r}
-hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
-x = seq(0, length(corrected_telephone_data),length=1000)
+hist(corrected_tel_data, prob=T, ylim = c(0,0.05))
+x = seq(0, length(corrected_tel_data),length=1000)
 f = est_lamb*exp(-est_lamb*x )
 lines(x,f,col="blue",lwd=2)
 ```
@@ -193,7 +194,7 @@ to check whether the fraction of the bills less than 10 euro is less than 25%.
 
 An appropriate test to test the null hypothesis of a median greater than some value is the Wilcoxon test [leg uit wat de test doet]. 
 ```{r}
-wilcox.test(corrected_telephone_data, mu=40, alternative="less")
+wilcox.test(corrected_tel_data, mu=40, alternative="less")
 ```
 
 We get a p-value of 1, implying that we should not reject H0. 
@@ -206,7 +207,7 @@ Tstar=numeric(B)
 T1 = 10
 
 for(i in 1:B) {
-  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Xstar=sample(corrected_tel_data,replace=TRUE)
   Tstar[i]=sum(Xstar < T1) / length(Xstar)
   }
 Tstar95=quantile(Tstar,0.95)
