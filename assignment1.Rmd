@@ -1,15 +1,19 @@
 ---
-title: "Assignment 1 -- Experimental Design and Data Analysis"
+title: "Assignment 1 \n Experimental Design and Data Analysis"
 output: 
-  pdf_document:
-    includes:
-      before_body: title.sty
+  html_document
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(digits=3)
 ```
+
+Daan Moll (VU: 2559766 / UvA: 11929332)
+Ramon Bussing (VU: 2687261 / UvA: 10719482)
+Karim Semin (VU: ksn222 / UvA: 11285990)
+
 
 ## Exercise 1
 
@@ -48,20 +52,11 @@ alpha = .05
 t.test(birthweight, alternative = "l", conf.level = 1-alpha, mu = 2800)[3]
 
 alpha = .05
-
 ```
 
 
 
 c) In the R-output of the test from b), also a confidence interval is given, but why is it different from the confidence interval found in a) and why is it one-sided?
-
-## Exercise 2
-We study the power function of the two-sample t-test (see Section 1.9 of Assignment 0). For n=m=30, mu=180, nu=175 and sd=5, generate 1000 samples x=rnorm(n,mu,sd) and y=rnorm(m,nu,sd), and record the 1000 p-values for testing H0: mu=nu. You can evaluate the power (at point nu=175) of this t-test as fraction of p-values that are smaller than 0.05.
-```{r}
-n=m=30
-mu=180
-nu=175
-sd=5
 
 B=1000
 p=numeric(B)
@@ -74,40 +69,23 @@ length(a[names(a)<0.05])/length(a)
 ```
 From the 1000 generated samples a fraction of 0.577 samples have p-values lower than 0.05.
 
-a) Set n=m=30, mu=180 and sd=5. Calculate now the power of the t-test for every value of nu in the grid seq(175,185,by=0.25). Plot the power as a function of nu.
-```{r}
-n=m=30
-mu=180
-nus=seq(175,185,by=0.25)
-sd=5
 
-powers = numeric(length(nus))
+## Exercise 3
 
-B=1000
-p=numeric(B)
-for (i in 1:length(nus)) {
-  nu = nus[i]
-  for (b in 1:B) {
-    x=rnorm(n,mu,sd);
-    y=rnorm(m,nu,sd);
-    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
-  a <- table(p)
-  powers[i] = length(a[names(a)<0.05])/length(a)
-} 
-powers_a = powers
-nus_a = nus
-
-plot1 = plot(nus_a, powers_a)
+a) If we plot the telephone.txt data set, we observe the following plot:
+```{r echo=FALSE}
+tel_data = read.table("telephone.txt",header=TRUE)
 ```
+If we observe the data, we see several participants that have a first month bill of €0. This does not seem plausible, as the company probably would not give out subscriptions for free. Therefore, we trim the data of zero-values.
 
-b) Set n=m=100, mu=180 and sd=5. Repeat the preceding exercise. Add the plot to the preceding plot.
 ```{r}
-n=m=100
-mu=180
-nus=seq(175,185,by=0.25)
-sd=5
+# remove 0-values
+corrected_tel_data = tel_data[apply(tel_data, 1, function(row) all(row !=0 )), ]
 
-powers = numeric(length(nus))
+# plot histograms
+par(mfrow=c(1,2))
+hist(tel_data$Bills, xlab = "First month bills (€)", main = "data before correction", ylim = c(0,55))
+hist(corrected_tel_data, xlab = "First month bills (€)", main = "data after correction", ylim = c(0,55))
 
 B=1000
 p=numeric(B)
@@ -124,31 +102,16 @@ powers_b = powers
 nus_b = nus
 
 # plot2 = plot(nus, powers)
+# plot boxplots
+par(mfrow=c(1,2))
+boxplot(tel_data$Bills, ylab = "€", main = "data before correction")
+boxplot(corrected_tel_data, ylab = "€", main = "data after correction")
 ```
 
-c) Set n=m=30, mu=180 and sd=15. Repeat the preceding exercise.
-```{r, figures-side, fig.show="hold", out.width="50%"}
-n=m=30
-mu=180
-nus=seq(175,185,by=0.25)
-sd=15
+We now see that the first bin (containing €0-€10 subscriptions) in the histogram contains a lower frequency due to the removal of zero-values. Based on the boxplots, we see that the the median of the data is relatively low with regards to the total range of subscription-prices. This implies that a larger part of participants have relatively low phone bills. Therefore, we might advice the marketing manager to focus on low-price subscriptions. 
 
-powers = numeric(length(nus))
 
-B=1000
-p=numeric(B)
-for (i in 1:length(nus)) {
-  nu = nus[i]
-  for (b in 1:B) {
-    x=rnorm(n,mu,sd);
-    y=rnorm(m,nu,sd);
-    p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
-  a <- table(p)
-  powers[i] = length(a[names(a)<0.05])/length(a)
-} 
-powers_c = powers
-nus_c = nus
-```
+b) We then test wether the data stems from an exponential distribution with $\lambda$ from [.01, .1] .by bootstrapping with the median as the test statistic. 
 
 ```{r}
 plot(nus_a, powers_a, main="Results 2", xlab="nu", ylab="fraction of power < 0.05", pch=20, col="blue")
@@ -187,26 +150,33 @@ c = n=m=30, mu=180 and sd=15
 A telecommunication company has entered the market for mobile phones in a new country. The company’s marketing manager conducts a survey of 200 new subscribers for mobile phones. The results of the survey are in the data set telephone.txt, which contains the first month bills X1 , . . . X200 , in euros.
 
 a) Make an appropriate plot of this data set. What marketing advice(s) would you give to the marketing manager? Are there any inconsistencies in the data? If so, try to fix these.
+lambdas = seq(.01, .1, .0005)
+t = median(corrected_tel_data)
+B=1000
+tstar=numeric(B)
+n=length(corrected_tel_data)
+p_values = c()
 
-```{r}
-telephone_data = read.table("telephone.txt",header=TRUE)
+for(lamb in lambdas){
+  for (i in 1:B){
+    xstar=rexp(n, lamb)
+    tstar[i]=median(xstar)}
+    
+  p_left=sum(tstar<t)/B
+  p_right=sum(tstar>t)/B
+  p = 2*min(p_left,p_right)
+  p_values = c(p_values, p)
+}
 
-# sorted data of firsth month bills
-sort(telephone_data$Bills)
+plot(lambdas, p_values, main = "P-values for lambda = [.01, 1]", xlab="lambda", ylab="p-values", pch=20)
+
+max_index_lamb = which.max(p_values)
+estimated_lamb= lambdas[max_index_lamb]
+
+cat("p-value for lambda =", estimated_lamb,"-->", max(p_values))
 ```
-If we look at the data, we see several participants that have a first month bill of €0. This does not seem plausible, as the company probably would not give out subscriptions for free. Therefore, we trim the data of zero-values.
 
-```{r}
-# row_sub = apply(dd, 1, function(row) all(row !=0 ))
-corrected_telephone_data = telephone_data[apply(telephone_data, 1, function(row) all(row !=0 )), ]
-
-par(mfrow=c(2,2))
-hist(telephone_data$Bills, xlab = "First month bills (€)", main = "data before correction")
-hist(corrected_telephone_data, xlab = "First month bills (€)", main = "data after correction")
-boxplot(telephone_data$Bills, ylab = "€")
-boxplot(corrected_telephone_data, ylab = "€")
-```
-We now see that the first bin in the histogram contains a lower frequency due to the removal of zero-values. Based on the boxplots, we see that most participants have relatively low phone bills. Therefore, we might advice the marketing manager to focus on budget subscriptions. 
+In the graph, we find a peak for $\lambda = .024$ with $p = .97$  This implies that the distribution of the data comes from an exponential distribution with $\lambda = .024$. 
 
 b) By using a bootstrap test with the test statistic T = median(X1,...,X200), test whether the data telephone.txt stems from the exponential distribution Exp(λ) with some λ from [0.01, 0.1].
 ```{r}
@@ -236,20 +206,25 @@ p_left;p_right;p
 The p-value is .002, therefore, h0 is rejected. This means that the distribution of the data does not come from the exponential distribution with lambda = 1/median(data). 
 
 c) Construct a 95% bootstrap confidence interval for the population median of the sample.
+
+c) Next, we constract a 95% bootstrap confidence interval for the population median of the sample. This is done by iteratively resampling sub-datasets from the original dataset with replacement. We do this 5000 times, in order to get robust results.
+
 ```{r}
+set.seed(10)
 B=5000
 Tstar=numeric(B)
-T1 = median(corrected_telephone_data)
+T1 = median(corrected_tel_data)
 
 for(i in 1:B) {
-  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Xstar=sample(corrected_tel_data,replace=TRUE)
   Tstar[i]=median(Xstar) }
-  Tstar05=quantile(Tstar,0.05)
-  Tstar95=quantile(Tstar,0.95)
-  sum(Tstar<Tstar05)
-c(2*T1-Tstar95,2*T1-Tstar05)
+  Tstar025=quantile(Tstar,0.025)
+  Tstar975=quantile(Tstar,0.975)
+  
+population_median = mean(Tstar)
+cat('95% CI = [',2*T1-Tstar975, '-',2*T1-Tstar025,'] with population median:', population_median)
 ```
-The 95% bootstrap confidence interval for the population median of the telephone data is [20.7, 36.5] around its median T1=28.9.
+The 95% bootstrap confidence interval for the population median of the telephone data is [16.4, 37.7] around the population median (28.7).
 
 
 d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate λ and construct again a 95% confidence interval for the population median. Comment on your findings.
@@ -259,23 +234,18 @@ First we will repeat the steps from question 1c, but with the sample mean in ste
 ```{r}
 B=5000
 Tstar=numeric(B)
-T1 = median(corrected_telephone_data)
 
 for(i in 1:B) {
-  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Xstar=sample(corrected_tel_data,replace=TRUE)
   Tstar[i]=mean(Xstar) 
   }
-Tstar05=quantile(Tstar,0.05)
-Tstar95=quantile(Tstar,0.95)
-sum(Tstar<Tstar05)
+Tstar025=quantile(Tstar,0.025)
+Tstar975=quantile(Tstar,0.975)
 
-c(2*T1-Tstar95,2*T1-Tstar05)
+# we use the estimated median from 3b as the population median
+c(2*population_median-Tstar975,2*population_median-Tstar025)
 ```
 
-<!-- We can translate the median of the samples to lambda since -->
-<!-- $median[X] = \frac{ln(2)}{\lambda}$ -->
-<!-- meaning: -->
-<!-- $\lambda = \frac{ln(2)}{median[X]}$ -->
 
 If we plot the means of the data, we get:
 ```{r}
@@ -284,7 +254,7 @@ hist(Tstar, prob=T)
 
 We then check whether the data is normally distributed:
 ```{r}
-shapiro.test(Tstar)
+qqnorm(Tstar)
 ```
 
 Therefore, the CLT applies. We can then obtain an estimate for $\lambda$ with:
@@ -292,15 +262,23 @@ $\lambda = \frac{1}{\mu}$
 
 Giving us an estimate of:
 ```{r}
+error = qnorm(0.975)*sd(Tstar)/sqrt(length(Tstar))
+left = mean(Tstar) - error
+right = mean(Tstar) + error
+
+cat('95% CI =[',left,right,']')
+
+
 est_lamb = 1/(mean(Tstar))
 est_lamb
+
+
 ```
 
-<!-- misschien dit hieronder weghalen -->
 If we plot the exponential distribution with $\lambda = .022$ against our data, we observe:
 ```{r}
-hist(corrected_telephone_data, prob=T, ylim = c(0,0.05))
-x = seq(0, length(corrected_telephone_data),length=1000)
+hist(corrected_tel_data, prob=T, ylim = c(0,0.05))
+x = seq(0, length(corrected_tel_data),length=1000)
 f = est_lamb*exp(-est_lamb*x )
 lines(x,f,col="blue",lwd=2)
 ```
@@ -314,7 +292,7 @@ to check whether the fraction of the bills less than 10 euro is less than 25%.
 
 An appropriate test to test the null hypothesis of a median greater than some value is the Wilcoxon test [leg uit wat de test doet]. 
 ```{r}
-wilcox.test(corrected_telephone_data, mu=40, alternative="less")
+wilcox.test(corrected_tel_data, mu=40, alternative="less")
 ```
 
 We get a p-value of 1, implying that we should not reject H0. 
@@ -327,7 +305,7 @@ Tstar=numeric(B)
 T1 = 10
 
 for(i in 1:B) {
-  Xstar=sample(corrected_telephone_data,replace=TRUE)
+  Xstar=sample(corrected_tel_data,replace=TRUE)
   Tstar[i]=sum(Xstar < T1) / length(Xstar)
   }
 Tstar95=quantile(Tstar,0.95)
@@ -335,6 +313,7 @@ Tstar95
 ```
 
 Based on the one-sided 95% confidence interval, we can not conclude that 25% of the bills are less than 10 euro.[uitwerken]
+
 
 
 ## Exercise 4
@@ -424,51 +403,62 @@ The dataset chickwts is a data frame included in the standard R installation, to
 
 a) Test whether the distributions of the chicken weights for meatmeal and sunflower groups are different by performing three tests: the two samples t-test (argue whether the data are paired or not), the Mann-Whitney test and the Kolmogorov-Smirnov test. Comment on your findings.
 ```{r}
-chickwts$feed
-sun = chickwts[chickwts$feed == "sunflower",]
-meat = chickwts[chickwts$feed == "meatmeal",]
-sun$weight; meat$weight
+# chickwts$feed
+sun = chickwts[chickwts$feed == "sunflower",]$weight
+meat = chickwts[chickwts$feed == "meatmeal",]$weight
+# sun$weight; meat$weight
 
-t.test(sun$weight,meat$weight)
-wilcox.test(sun$weight,meat$weight)
+# hist(sun)
+# hist(meat)
 
-hist(sun$weight)
-hist(meat$weight)
+#check for normality, p > 0.05 means no reason to assume non-normal data.
+shapiro.test(sun)
+shapiro.test(meat)
 
-ks.test(sun$weight,meat$weight)
+t.test(sun,meat, paired = FALSE)
+wilcox.test(sun,meat)
+ks.test(sun,meat)
 ```
 Welch two sample t-test p-value: 0.04
 Mann-Whitney test p-value: 0.07
 Kolmogorov-Smirnov test p-value: 0.1
 
+Since the chickens in both groups are unique the data is not paired. Paired data would be the case if we would measure the same chicken twice. The Welch's T-test gives a p-value of 0.04, hence rejecting H0 according to the common alpha=0.05, meaning that we have reason to assume that the true mean weights of the chickens with sunflower and meatmeal are different. 
+
+The Mann-Whitney test has a p > 0.05, therefore we can not conclude from this test that the populations are unequal. Given that this is a non-parametric test it has less power than the parametric t-test, we therefore expect this p-value to be higher than the t-test. This test bases its p-value on the discrepancy between the mean ranks of ordered groups.
+
+The KS-test has a p < 0.05, therefore we can conclude that the populations are unequal. This test bases its p-value on the largest discrepancy between two cummulative density frequency distributions from the two samples. 
+
+
 b) Conduct a one-way ANOVA to determine whether the type of feed supplement has an effect on the weight of the chicks. Give the estimated chick weights for each of the six feed supplements. What is the best feed supplement?
 ```{r}
-chicks = chickwts
-sunflower = chickwts[chickwts$feed == "sunflower",]$weight
-meat = chickwts[chickwts$feed == "meatmeal",]$weight
-horse = chickwts[chickwts$feed == "horsebean",]$weight
-linseed = chickwts[chickwts$feed == "linseed",]$weight
-soy = chickwts[chickwts$feed == "soybean",]$weight
-cas = chickwts[chickwts$feed == "casein",]$weight
-sun; meat; horse; linseed; soy; cas
+chickwts = chickwts
 
-boxplot(weight ~ feed, data=chickwts)
-stripchart(weight ~ feed, data=chickwts, vertical=TRUE)
+boxplot(weight ~ feed, data=chickwts,las=2)
+# stripchart(weight ~ feed, data=chickwts, vertical=TRUE,las=2)
 
 chickaov = lm(weight ~ feed, data = chickwts)
 anova(chickaov)
 ```
+Given that the ANOVA only tells us that at least one of all the tested groups are different from the rest, thus no conclusions about the best feed supplement can be made. In addition to this, "best" is undefined in the question, meaning that we don't know what best means for the researcher. Maybe chickens with less weight variance can be sold more easily and are thus the "best", but maybe the highest mean weight can be sold for the most money and is thus the best. We simply don't know, therefore we can't state which group is the best with only the information given.
+
 c) Check the ANOVA model assumptions by using relevant diagnostic tools.
 ```{r}
-
+plot(chickaov, 1)
 ```
+This plot does not show a relationship between the fitted values and the residuals, allowing us to conclude that the assumption for equality of variances is met.
+
+```{r}
+plot(chickaov, 2)
+shapiro.test(residuals(chickaov))
+```
+This plot shows that the measurements follow the diagonal dotted line, allowing us to conclude that the assumption for normality is met. This claim is supported by the Shapiro–Wilk test since its p-value is higher than the common alpha of 0.05.
+
 
 d) Does the Kruskal-Wallis test arrive at the same conclusion about the effect of feed supplement as the test in b)? Explain possible differences between conclusions of the Kruskal-Wallis and ANOVA tests.
-```{r}
-attach(chickwts)
-kruskal.test(weight, feed)
-```
 
+The ANOVA gives a p-value that states the probability that the means of three or more groups are equal. When the p-value is considered significant, then we can conclude that the mean of at least one group is different from the others.
+The Kruskal-wallis test is also able to compare distributions, but than for two groups rather than three or more. In addition to this, the Kruskal-wallis test bases its p-value on the largest discrepancy between two cummulative density frequency distributions from the two samples rather than the means.
 
 
 
