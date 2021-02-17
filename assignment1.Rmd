@@ -139,9 +139,9 @@ cat('95% CI = [',2*T1-Tstar975, '-',2*T1-Tstar025,'] with population median:', p
 The 95% bootstrap confidence interval for the population median of the telephone data is [16.4, 37.7] around the population median (28.7).
 
 
-d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate λ and construct again a 95% confidence interval for the population median. Comment on your findings.
+d) Assuming X1 , . . . Xn ∼ Exp(λ) and using the central limit theorem for the sample mean, estimate $\lambda$ and construct again a 95% confidence interval for the population median. Comment on your findings.
 
-We once again use the bootstrapping method to sample from the dataset. The mean of the samples is retrieved and next, 
+We once again use the bootstrapping method to sample from the dataset. For each sample, the mean is retrieved and stored in a vector. 
 
 ```{r}
 B=5000
@@ -151,51 +151,40 @@ for(i in 1:B) {
   Xstar=sample(corrected_tel_data,replace=TRUE)
   Tstar[i]=mean(Xstar) 
 }
-
-Tstar025=quantile(Tstar,0.025)
-Tstar975=quantile(Tstar,0.975)
-
-# we use the estimated median from 3b as the population median
-c(2*population_median-Tstar975,2*population_median-Tstar025)
 ```
 
 
-If we plot the means of the samples, we get:
-```{r}
-hist(Tstar, prob=T)
-```
-
-We then check whether the data is normally distributed:
+In order to check whether the central limit theorem applies, the data is checked for normality with a QQ plot. 
 ```{r}
 qqnorm(Tstar)
 ```
+Here, it can be observed that all the datapoints lay on a straight line. Therefore, normality may be assumed and thus the central limit theorem applies. 
 
 Therefore, the CLT applies. We can then obtain an estimate for $\lambda$ with:
 $\lambda = \frac{1}{\mu}$
 
 Giving us an estimate of:
 ```{r}
+est_lamb = 1/(mean(Tstar))
+est_lamb
+```
+
+
+```{r}
 error = qnorm(0.975)*sd(Tstar)/sqrt(length(Tstar))
 left = mean(Tstar) - error
 right = mean(Tstar) + error
 
 cat('95% CI =[',left,right,']')
-
-
-est_lamb = 1/(mean(Tstar))
-est_lamb
-
-
 ```
 
-If we plot the exponential distribution with $\lambda = .022$ against our data, we observe:
-```{r}
-hist(corrected_tel_data, prob=T, ylim = c(0,0.05))
-x = seq(0, length(corrected_tel_data),length=1000)
-f = est_lamb*exp(-est_lamb*x )
-lines(x,f,col="blue",lwd=2)
-```
-
+<!-- If we plot the exponential distribution with $\lambda = .022$ against our data, we observe: -->
+<!-- ```{r} -->
+<!-- hist(corrected_tel_data, prob=T, ylim = c(0,0.05)) -->
+<!-- x = seq(0, length(corrected_tel_data),length=1000) -->
+<!-- f = est_lamb*exp(-est_lamb*x ) -->
+<!-- lines(x,f,col="blue",lwd=2) -->
+<!-- ``` -->
 
 
 
