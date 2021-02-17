@@ -187,7 +187,6 @@ c = n=m=30, mu=180 and sd=15
 
 
 ## Exercise 3
-
 a) If we plot the telephone.txt data set, we observe the following plot:
 ```{r echo=FALSE}
 tel_data = read.table("telephone.txt",header=TRUE)
@@ -244,7 +243,7 @@ cat("p-value for lambda =", estimated_lamb,"-->", max(p_values))
 In the graph, we find a peak for $\lambda = .024$ with $p = .97$  This implies that the distribution of the data comes from an exponential distribution with $\lambda = .024$. 
 
 
-c) Next, we constract a 95% bootstrap confidence interval for the population median of the sample. This is done by iteratively resampling sub-datasets from the original dataset with replacement. We do this 5000 times, in order to get robust results.
+c) Next, we construct a 95% bootstrap confidence interval for the population median of the sample. This is done by iteratively resampling sub-datasets from the original dataset with replacement. We do this 5000 times, in order to get robust results.
 
 ```{r}
 set.seed(10)
@@ -291,25 +290,27 @@ $\lambda = \frac{1}{\mu}$
 Giving us an estimate of:
 ```{r}
 est_lamb = 1/(mean(Tstar))
-est_lamb
+cat('Estimated lambda',est_lamb, '(based on the sample means)')
 ```
 
+We then again use the bootstrapping method to generate a 95% confidence interval. Here, the samples are retrieved from the exponential distrubution with the newly estimated lambda value (.022). 
 
 ```{r}
-error = qnorm(0.975)*sd(Tstar)/sqrt(length(Tstar))
-left = mean(Tstar) - error
-right = mean(Tstar) + error
+set.seed(10)
+Tstar=numeric(B)
 
-cat('95% CI =[',left,right,']')
+for(i in 1:B) {
+  Xstar=rexp(n, est_lamb)
+  Tstar[i]=median(Xstar) }
+
+Tstar025=quantile(Tstar,0.025)
+Tstar975=quantile(Tstar,0.975)
+
+exponential_median = mean(Tstar)
+cat('95% CI = [',2*exponential_median-Tstar975, '-',2*exponential_median-Tstar025,'] with population median:', exponential_median)
 ```
 
-<!-- If we plot the exponential distribution with $\lambda = .022$ against our data, we observe: -->
-<!-- ```{r} -->
-<!-- hist(corrected_tel_data, prob=T, ylim = c(0,0.05)) -->
-<!-- x = seq(0, length(corrected_tel_data),length=1000) -->
-<!-- f = est_lamb*exp(-est_lamb*x ) -->
-<!-- lines(x,f,col="blue",lwd=2) -->
-<!-- ``` -->
+We observe a 95% confidence interval of [24.8 - 37.7] with a mean median of 31.7. 
 
 
 
@@ -317,14 +318,15 @@ e) Using an appropriate test, test the null hypothesis that the median bill is b
 to check whether the fraction of the bills less than 10 euro is less than 25%.
 
 
-An appropriate test to test the null hypothesis of a median greater than some value is the Wilcoxon test [leg uit wat de test doet]. 
+In order to test the null hypothesis that the median bill is bigger or equal to 40 euro's against the alternative that the median bill is smaller than 40 euro's, we use the Wilcoxon signed rank test. This test assumes that the data is symmetrically distributed around the median. This can be reviewed by observing the histogram in 3a). From the histogram we can gather that the data is more or less distributed evenly around the median (28.9) therefore we can now perform the Wilcoxon test.
+
 ```{r}
 wilcox.test(corrected_tel_data, mu=40, alternative="less")
 ```
 
 We get a p-value of 1, implying that we should not reject H0. 
 
-Next, we test whether the fraction of the bills less than 10 euro is less than 25%. We can do this by bootstrapping a 25% confidence interval with a test statistic of 10.
+Next, we test whether the fraction of the bills less than 10 euro is less than 25%. We can do this by bootstrapping a 95% confidence interval with a test statistic of 10.
 
 ```{r}
 B=5000
@@ -339,7 +341,7 @@ Tstar95=quantile(Tstar,0.95)
 Tstar95
 ```
 
-Based on the one-sided 95% confidence interval, we can not conclude that 25% of the bills are less than 10 euro.[uitwerken]
+With our 95% one-sided confidence interval, we find that 28.1% of the bills are less than 10 euro's within a 95% one-sides confidence interval. Therefore, we should reject the hypothesis that the fraction of the bills less than 10 euro is less than 25%.
 
 
 
