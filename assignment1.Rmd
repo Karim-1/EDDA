@@ -339,6 +339,11 @@ for(i in 1:B) {
   }
 Tstar95=quantile(Tstar,0.95)
 Tstar95
+
+succceses = sum(corrected_tel_data < 10)
+failures = sum(corrected_tel_data >= 10)
+binom.test(c(successes, failures), p = .25, alternative
+
 ```
 
 With our 95% one-sided confidence interval, we find that 28.1% of the bills are less than 10 euro's within a 95% one-sides confidence interval. Therefore, we should reject the hypothesis that the fraction of the bills less than 10 euro is less than 25%.
@@ -346,7 +351,6 @@ With our 95% one-sided confidence interval, we find that 28.1% of the bills are 
 
 
 ## Exercise 4
-
 To study the effect of energy drink a sample of 24 high school pupils were randomized to drinking either a
 softdrink or an energy drink after running for 60 meters. After half an hour they were asked to run again.
 For both sprints they were asked to sprint as fast they could, and the sprinting time was measured. The
