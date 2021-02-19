@@ -46,7 +46,7 @@ cat('\n90% confidence interval = [', lower_bound,',', upper_bound,']')
 ```
 From the 90% confidence interval, it is expected that if the experiment was repeated endless times, in 90% of the experiments, the mean should be within our confidence interval.
 
-b) Next, we test the alternative hypothesis that µ > 2800 with a t-test. Given that we want to investigate if the true mean birth weight is bigger than 2800, the corresponding H0 is that true mean is less or equal than 2800. This is done with help of a t-test.
+b) Next, we test the alternative hypothesis that µ > 2800 with a t-test. Given that we want to investigate if the true mean birth weight is bigger than 2800, the corresponding H0 is that true mean is less or equal than 2800. This is done with help of a t-test. The t-test is a statistical test which is used to compare the means of two groups. It makes a few assumptions which are as followed. First, it assumes that the scale of measurement of the data follows a continuous scale. Secondly, it assumes that the data is collected from a randomly selected portion of the total population. The third assumption is that the data is normally distributed. And the last assumption is that a reasonably large sample size is used. All of these assumptions are met, therefore we can perform the t-test.
 ```{r}
 t.test(birthweight, alternative = "g", mu = 2800)[3]
 
