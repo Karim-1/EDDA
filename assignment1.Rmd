@@ -14,27 +14,41 @@ Daan Moll (VU: 2559766 / UvA: 11929332)
 Ramon Bussing (VU: 2687261 / UvA: 10719482)
 Karim Semin (VU: ksn222 / UvA: 11285990)
 
+Group number: 49
+
 
 ## Exercise 1
 The data set birthweight.txt contains the birthweights of 188 newborn babies. We are interested in finding the underlying (population) mean μ of birthweights.
 
 a) Check normality of the data. Compute a point estimate for μ. Derive, assuming normality (irrespective of your conclusion about normality od the data), a bounded 90% confidence interval for μ.
 
-```{r echo=FALSE}
-birth = read.table("birthweight.txt",header=TRUE)
-birthweight = birth$birthweight
-```
 
-Point estimate for μ:
+First, we check the normality of the data. This is done with a QQ-plot, as well as with the Shapiro-Wilk test. 
+
+We observe the following QQ-plot:
 ```{r}
-mean(birthweight)
+birth= read.table("birthweight.txt",header=TRUE)
+birthweight = birth$birthweight
+qqnorm(birthweight)
 ```
+The dots in the plot seem aligned relatively straight, implying that the data is normally distributed. To be sure of this conclusion, the normality of the data is also tested with the Shapiro-Wilk test.
 
-Check normality with Shapiro-Wilk test:
 ```{r}
 shapiro.test(birthweight)[2]
 ```
-p is non-significant. This implies that h0 is accepted (the data is normally distributed).
+
+The Shapiro wilk test gives us a non-significant p-value (p = .9). This implies that h0 is not rejected, implying that the data is normally distributed).
+
+Next, a point estimate for μ is derived with a 90% bounded confidence interval.
+
+```{r}
+cat('mean =', mean(birthweight))
+z_star_95 = qnorm(.95)
+z_star_05 = qnorm(.05)
+
+cat('\n90% confidence interval = [', mean(birthweight) + qnorm(.05),',', mean(birthweight) + qnorm(.95),']')
+```
+
 
 
 b) An expert claims that the mean birthweight is bigger than 2800, verify this claim by using a t-test. What is the outcome of the test if you take α = 0.1? And other values of α?
@@ -326,7 +340,7 @@ wilcox.test(corrected_tel_data, mu=40, alternative="less")
 
 We get a p-value of 1, implying that we should not reject H0. 
 
-Next, we test whether the fraction of the bills less than 10 euro is less than 25%. We can do this by bootstrapping a 95% confidence interval with a test statistic of 10.
+Next, we test whether the fraction of the bills less than 10 euro is less than 25%. We can do this by with the binomial test. The binomial test assumed that data samples are independent, which is the case in our experiment. 
 
 ```{r}
 B=5000
@@ -340,14 +354,13 @@ for(i in 1:B) {
 Tstar95=quantile(Tstar,0.95)
 Tstar95
 
-succceses = sum(corrected_tel_data < 10)
-failures = sum(corrected_tel_data >= 10)
-binom.test(c(successes, failures), p = .25, alternative
+under10 = sum(corrected_tel_data < 10)
+over10 = sum(corrected_tel_data >= 10)
+binom.test(c(under10, over10), p = .25, alternative = "greater")
 
 ```
 
-With our 95% one-sided confidence interval, we find that 28.1% of the bills are less than 10 euro's within a 95% one-sides confidence interval. Therefore, we should reject the hypothesis that the fraction of the bills less than 10 euro is less than 25%.
-
+The binomial test gives us a p-value of .8, meaning that we should not reject our h0 hypothesis, meaning that the hypothesis that the fraction of the bills less than 10 euro is less than 25% is not rejected. 
 
 
 ## Exercise 4
