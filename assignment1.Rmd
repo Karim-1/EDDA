@@ -17,21 +17,16 @@ Karim Semin (VU: ksn222 / UvA: 11285990)
 Group number: 49
 
 
+For all exercises, an $\alpha$ significance level of .05 is used, unless stated otherwise.
+
 ## Exercise 1
-The data set birthweight.txt contains the birthweights of 188 newborn babies. We are interested in finding the underlying (population) mean μ of birthweights.
-
-a) Check normality of the data. Compute a point estimate for μ. Derive, assuming normality (irrespective of your conclusion about normality od the data), a bounded 90% confidence interval for μ.
-
-
-First, we check the normality of the data. This is done with a QQ-plot, as well as with the Shapiro-Wilk test. 
-
-We observe the following QQ-plot:
+First, we check the normality of the data. This is done with a Quantile-Quantile plot (QQ-plot). A QQ-plot for normality has on the x-axis the theoretical quantiles corresponding with a normal distribution and on the y-axis the sample quantiles. When the sample values (the dots) follow the given linear line, the quantiles of the data correspond with the quantiles of the normal distribution allowing us to confirm normality of the sample. We observe the following QQ-plot:
 ```{r}
 birth= read.table("birthweight.txt",header=TRUE)
 birthweight = birth$birthweight
 qqnorm(birthweight)
 ```
-The dots in the plot seem aligned relatively straight, implying that the data is normally distributed. To be sure of this conclusion, the normality of the data is also tested with the Shapiro-Wilk test.
+The dots in the plot seem aligned relatively straight, implying that the data is normally distributed. To be sure of this conclusion, the normality of the data is also tested with the Shapiro-Wilk test. When using the Shapiro-Wilk test for large datasets it has a high chance of returning a type one error. This is caused by small deviations from the hypothesis which are actually too small to be of any significance. This error will not occur in the case of our dataset, as it is relatively small (n=188). 
 
 ```{r}
 shapiro.test(birthweight)[2]
@@ -43,36 +38,34 @@ Next, a point estimate for μ is derived with a 90% bounded confidence interval.
 
 ```{r}
 cat('mean =', mean(birthweight))
-z_star_95 = qnorm(.95)
-z_star_05 = qnorm(.05)
+z_star_90 = qnorm(.95)
+lower_bound = mean(birthweight) - z_star_90 * (sd(birthweight) / sqrt(length(birthweight)))
+upper_bound = mean(birthweight) + z_star_90 * (sd(birthweight) / sqrt(length(birthweight)))
 
-cat('\n90% confidence interval = [', mean(birthweight) + qnorm(.05),',', mean(birthweight) + qnorm(.95),']')
+cat('\n90% confidence interval = [', lower_bound,',', upper_bound,']')
 ```
+From the 90% confidence interval, it is expected that if the experiment was repeated endless times, in 90% of the experiments, the mean should be within our confidence interval.
 
-
-
-b) An expert claims that the mean birthweight is bigger than 2800, verify this claim by using a t-test. What is the outcome of the test if you take α = 0.1? And other values of α?
-
-If we test this hypothesis with α = 0.1 we get:
+b) Next, we test the alternative hypothesis that µ > 2800 with a t-test. Given that we want to investigate if the true mean birth weight is bigger than 2800, the corresponding H0 is that true mean is less or equal than 2800. This is done with help of a t-test.
 ```{r}
-alpha = .1
-t.test(birthweight, alternative = "l", conf.level = 1-alpha, mu = 2800)[3]
+t.test(birthweight, alternative = "g", mu = 2800)[3]
+
+cat('with confidence level = .1, CI =\n[',t.test(birthweight, conf.level = 0.1, alternative = "g", mu = 2800)[[4]][1],',',t.test(birthweight, conf.level = 0.1, alternative = "g", mu = 2800)[[4]][2],']')
+cat('\n')
+
+cat('\nwith confidence level = .01, CI =\n[',t.test(birthweight, conf.level = 0.01, alternative = "g", mu = 2800)[[4]][1],',',t.test(birthweight, conf.level = 0.01, alternative = "g", mu = 2800)[[4]][2],']')
+cat('\n')
 ```
 
-p = .9864, therefore, h0 is accepted. If we try this for alpha = .05, .01, .001, we get the following p values:
-```{r}
-alpha = .05
-t.test(birthweight, alternative = "l", conf.level = 1-alpha, mu = 2800)[3]
+The result is statistically significant when p is equal or less than alpha. Given that the p-value from that t-test is 0.01, we conclude that we have evidence for a true mean greater than 2800 if our alpha is 0.01 or higher. So for the alpha of 0.1 we conclude that we found significant evidence for a true mean bigger than 2800. Since our Ha is about the true mean being bigger than a value, the corresponding confidence interval has a lower bound with specific value and infinite for the upper bound. When alpha becomes lower, the confidence interval becomes smaller, resulting in our case in a higher lower bound.
 
-alpha = .05
-```
-
-c) In the R-output of the test from b), also a confidence interval is given, but why is it different from the confidence interval found in a) and why is it one-sided?
+c) The R-output from b) is different from a), as we are using a different test statistic (µ). The confidence interval is one-sided, because the alternative hypothesis is that the mean weight is 'greater than' a certain value, as opposed to the alternative hypothesis that the true mean lays outside of our confidence interval.
 
 
 ## Exercise 2
 We study the power function of the two-sample t-test (see Section 1.9 of Assignment 0). For n=m=30, mu=180, nu=175 and sd=5, generate 1000 samples x=rnorm(n,mu,sd) and y=rnorm(m,nu,sd), and record the 1000 p-values for testing H0: mu=nu. You can evaluate the power (at point nu=175) of this t-test as fraction of p-values that are smaller than 0.05.
 ```{r}
+set.seed(10)
 n=m=30
 mu=180
 nu=175
@@ -85,11 +78,12 @@ for (b in 1:B) {
   y=rnorm(m,nu,sd);
   p[b]=t.test(x,y,var.equal = TRUE)[[3]]}
 a <- table(p)
-length(a[names(a)<0.05])/length(a)
+cat('proportion of p-values < .05:\n', length(a[names(a)<0.05])/length(a))
 ```
-From the 1000 generated samples a fraction of 0.577 samples have p-values lower than 0.05.
 
-a) Set n=m=30, mu=180 and sd=5. Calculate now the power of the t-test for every value of nu in the grid seq(175,185,by=0.25). Plot the power as a function of nu.
+From the 1000 generated samples a fraction of 0.558 samples have p-values lower than 0.05.
+
+a) We first calculate the t-test with n=m=30, mu=180 and sd=5 for every value of nu in the grid seq(175,185,by=0.25).
 ```{r}
 n=m=30
 mu=180
@@ -112,10 +106,10 @@ for (i in 1:length(nus)) {
 powers_a = powers
 nus_a = nus
 
-plot1 = plot(nus_a, powers_a)
 ```
 
-b) Set n=m=100, mu=180 and sd=5. Repeat the preceding exercise. Add the plot to the preceding plot.
+
+b) We repeat step a), with n=m=100, mu=180 and sd=5.
 ```{r}
 n=m=100
 mu=180
@@ -137,11 +131,9 @@ for (i in 1:length(nus)) {
 } 
 powers_b = powers
 nus_b = nus
-
-# plot2 = plot(nus, powers)
 ```
 
-c) Set n=m=30, mu=180 and sd=15. Repeat the preceding exercise.
+c) Step a) is once again repeated with n=m=30, mu=180 and sd=15.
 ```{r, figures-side, fig.show="hold", out.width="50%"}
 n=m=30
 mu=180
@@ -165,8 +157,9 @@ powers_c = powers
 nus_c = nus
 ```
 
+If we plot the respective powers of the t-tests from a), b) and c), we observe the following plot.
 ```{r}
-plot(nus_a, powers_a, main="Results 2", xlab="nu", ylab="fraction of power < 0.05", pch=20, col="blue")
+plot(nus_a, powers_a, main="Power as a function of nu", xlab="nu", ylab="fraction of power < 0.05", pch=20, col="blue")
 lines(nus_a, powers_a, xlab="nu", pch=20, col="blue")
 points(nus_b, powers_b, xlab="nu", pch=20, col="red")
 lines(nus_b, powers_b, xlab="nu", pch=20, col="red")
@@ -175,29 +168,8 @@ lines(nus_c, powers_c, xlab="nu", pch=20, col="green")
 legend(184, 0.5, legend=c("a", "b", "c"), col=c("blue", "red", "green"), lty=1, cex=0.8)
 ```
 
-d) Explain your findings.
-The graph shows the findings of question a, b and c. It is clearly shown that depending on the
 
-difference between a and b is 30 and 100 samples, respectively.
-so more samples in b, result in more fluctuations
-so nu 176 gives a power of <0.1 while nu 178 gives a power of approx. 0.7.
-mu = 180. so shouldnt nu 176 be a higher power? because further away from 180, so "easier" to detect that mu != nu and thus H0 false, or p < 0.05
-
-difference between a and c is a sd of 5 and 15 respectively.
-
-The findings of question c show that an increase in standard deviation will decrease the power of a t-test. A possible explanation for this could be that because of the higher standard deviation.   
-
-
-mu is constant at 180.
-n and m are same (samples)
-test if mu=nu
-nu ranges from 175-185
-
-Y-axis shows the fraction of p-values < 0.05. So the amount of times were it was determined that mu does not equal nu.
-
-a = n=m=30, mu=180 and sd=5
-b = n=m=100, mu=180 and sd=5
-c = n=m=30, mu=180 and sd=15
+d) On the y-axis we observe the fraction of power < .05. When the fraction of power <.05 is high, we are less certain about which hypothesis to chose. We are more certain to accept H0 when the mu is closer to 180, and we get more certain about accepting Ha when we get further away from 180. When nu is close to 180, we're not certain which hypothesis to accept due to the similarity in likelihood between H0 and Ha. This explains the curve with the two symmetrical peaks next to 180. When the standard deviation is higher (question c compared to a), the range of uncertainty gets larger, or in other words: The area under the line get larger. This is expected, because the t-test compares the means of the groups. With an increase in spread/standard deviation, the confidence interval becomes larger, giving us less power and thus a larger range of uncertainty about which hypothesis to choose. When we take more samples (question b compared to a) the power increases as the tails of the t-distribution get thinner, hence the smaller range of uncertainty for b compared to a.
 
 
 ## Exercise 3
@@ -257,7 +229,7 @@ cat("p-value for lambda =", estimated_lamb,"-->", max(p_values))
 In the graph, we find a peak for $\lambda = .024$ with $p = .97$  This implies that the distribution of the data comes from an exponential distribution with $\lambda = .024$. 
 
 
-c) Next, we construct a 95% bootstrap confidence interval for the population median of the sample. This is done by iteratively resampling sub-datasets from the original dataset with replacement. We do this 5000 times, in order to get robust results.
+c) Next, we construct a 95% bootstrap confidence interval for the population median of the sample. This is done by iteratively resampling sub-datasets from the original dataset with replacement. We do this for a total of 5000 times, to get stable results according to the law of large numbers.
 
 ```{r}
 set.seed(10)
@@ -327,7 +299,6 @@ cat('95% CI = [',2*exponential_median-Tstar975, '-',2*exponential_median-Tstar02
 We observe a 95% confidence interval of [24.8 - 37.7] with a mean median of 31.7. 
 
 
-
 e) Using an appropriate test, test the null hypothesis that the median bill is bigger or equal to 40 euro against the alternative that the median bill is smaller than 40 euro. Next, design and perform a test
 to check whether the fraction of the bills less than 10 euro is less than 25%.
 
@@ -340,9 +311,10 @@ wilcox.test(corrected_tel_data, mu=40, alternative="less")
 
 We get a p-value of 1, implying that we should not reject H0. 
 
-Next, we test whether the fraction of the bills less than 10 euro is less than 25%. We can do this by with the binomial test. The binomial test assumed that data samples are independent, which is the case in our experiment. 
+Next, we test the alternative hypothesis that the fraction of the bills less than 10 euro is less than 25%. We can do this by with the binomial test. This test gives the probility of observing a certain expected distribution of observations (25% of bills is less than 10 euro's, in our case). The binomial test assumes that data samples are independent, which is the case in our experiment. 
 
 ```{r}
+set.seed(10)
 B=5000
 Tstar=numeric(B)
 T1 = 10
@@ -356,159 +328,132 @@ Tstar95
 
 under10 = sum(corrected_tel_data < 10)
 over10 = sum(corrected_tel_data >= 10)
-binom.test(c(under10, over10), p = .25, alternative = "greater")
+binom.test(c(under10, over10), p = .25, alternative = "less")[3]
 
 ```
 
-The binomial test gives us a p-value of .8, meaning that we should not reject our h0 hypothesis, meaning that the hypothesis that the fraction of the bills less than 10 euro is less than 25% is not rejected. 
+The binomial test gives us a p-value of .283, meaning that we should not reject our h0 hypothesis. This implies that the hypothesis that the fraction of the bills less than 10 euro is less than 25% should not be accepted. 
 
 
 ## Exercise 4
-To study the effect of energy drink a sample of 24 high school pupils were randomized to drinking either a
+To study the effect of energy drink, a sample of 24 high school pupils were randomized to drinking either a
 softdrink or an energy drink after running for 60 meters. After half an hour they were asked to run again.
 For both sprints they were asked to sprint as fast they could, and the sprinting time was measured. The
-data is given in the file run.txt. [Courtesy class 5E, Stedelijk Gymnasium Leiden, 2010.]
+data is given in the file run.txt [Courtesy class 5E, Stedelijk Gymnasium Leiden, 2010.].
 
 ```{r echo=FALSE}
-# Load data
 run = read.table("run.txt",header=TRUE)
 lemo = subset(run, drink == "lemo")
 energy = subset(run, drink == "energy")
 ```
 
 
-a) Disregarding the type of drink, test whether the run times before drink and after are correlated.
-
-Check for normality:
-```{r}
-# qqnorm(run$before, main = "Normal Q-Q plot before drink")
-# qqnorm(run$after, main = "Normal Q-Q plot after drink")
-shapiro.test(run$before)
-shapiro.test(run$after)
-
-```
-Assumption for normality met since both p-values are larger than 0.05.
+a) Firstly, we will disregard the type of drink and test whether the run-times before and after the drink are correlated. 
 
 ```{r}
 plot(run$before, run$after, xlab="Run time before drink", ylab="Run time after drink")
-cor.test(run$before, run$after,  method = "pearson")
+cor.test(run$before, run$after,  method = "pearson")[3]
 ```
 
-Since Pearson's product-moment correlation p < 0.05 we can state that we found significant evidence that a true correlation exists.
+Since Pearson's product-moment correlation p < 0.05, we can state that we found significant evidence that a true correlation exists.
 
-b) Test separately, for both the softdrink and the energy drink conditions, whether there is a difference in speed in the two running tasks.
-
-Check for normality:
+b) Next, we check whether there is a difference in speed for the two running tasks. We first check the data for normality again. In order to compare these two groups, we will use a t-test. The t-test will be used to do this. Since the t-test assumes normally distributed data, we test the data for normality again first. As in exercise 1a), this is done with QQ-plots and the Shapiro-Wilk test.
 ```{r}
-# qqnorm(lemo$before)
+# check normality for lemonade group
+qqnorm(lemo$before)
+qqnorm(lemo$after)
 shapiro.test(lemo$before)
-# qqnorm(lemo$after)
 shapiro.test(lemo$after)
 
-# qqnorm(energy$before)
+# check normality for energy drink group
+qqnorm(energy$before)
+qqnorm(energy$after)
 shapiro.test(energy$before)
-# qqnorm(energy$after)
 shapiro.test(energy$after)
 ```
-Assumption for normality met since all four both p-values are larger than 0.05.
 
-Check run time difference between before and after drink:
+The QQ-plots seem relatively normal. Moreover, the Shapiro-Wilk test gives us non-significant p-values (>.05). Therefore, the assumption for normality is met.
+
+This allows us to compare the run times before and after the drink with a t-test.
 ```{r}
-t.test(lemo$before, lemo$after, paired = TRUE, var.equal = FALSE)
-t.test(energy$before, energy$after, paired = TRUE, var.equal = FALSE)
-
+t.test(lemo$before, lemo$after, paired = TRUE, var.equal = FALSE)[3]
+t.test(energy$before, energy$after, paired = TRUE, var.equal = FALSE)[3]
 ```
-p > 0.05 thus no evidence for a difference between before and after drink run times for both the energy and the limo group.
+For both drinks, a non-significant p-value is found (p > 0.05). Therefore, the null-hypothesis is not rejected. This implies that no evidence for a difference between before and after drink run times for both the energy and the lemonade group is found.
 
 
-c) For each pupil compute the time difference between the two running tasks. Test whether these time
-differences are effected by the type of drink.
-
-Calculate differences, check for normality and then test whether these time differences are effected by the type of drink:
+c) We then check whether we find a time difference between the two running tasks and if these time differences are affected by the type of drink. To do this, we first compute the time differences before and after the drink. Next, we compare the differences for both group.
 ```{r}
 lemo_diff = lemo$before - lemo$after
 energy_diff = energy$before - energy$after
 
-# qqnorm(lemo_diff)
-shapiro.test(lemo_diff)
-# qqnorm(energy_diff)
-shapiro.test(energy_diff)
-
-t.test(lemo_diff, energy_diff, paired = FALSE)
+t.test(lemo_diff, energy_diff, paired = FALSE)[3]
 ```
-Assumption for normality met since both p-values are larger than 0.05.
-The limo and energy time differences show no evidence for a true difference since the t-test p > 0.05
 
-d) Can you think of a plausible objection to the design of the experiment in b) if the main aim was to test
-whether drinking the energy drink speeds up the running? Is there a similar objection to the design
-of the experiment in c)? Comment on all your findings in this exercise.
+We once again find a non-significant p-value for the t-test (.159). Therefore, the null-hypothesis is not rejected, implying that there is no differences in run-time are found for before and after consuming the drink for both drinks. 
 
-Experiment b takes the before drink times as control group and the after drink as experiment group, whereas the aim of the experiment was to investigate the difference between energy drink an limo on running times after the drink. When investigating a difference between before and after drinking the difference between drinks is not investigated.
+d) A plausible objection against the experiment in b) may be that the experiment takes the before drink run times as the control group and the after drink run times for the experiment group. The aim of the experiment was to investigate the difference between energy drink an limo on running times. When investigating a difference between before and after drinking, the difference between drinks is not investigated.
 
-Furthermore, the research question states that the increase in running times after drinking energy and control group limo needs to be researched, but then only the running times after drinking need to be taken into consideration since investigating the difference between before and after drinking also includes the proven decrease in running times when performing these intensive tasks shortly after each other. This effect works against what we want to investigate. This very same point of criticism also applies to question c since that question asks for the time difference between the before and after group.
+In addition to this, the research question states that the increase in running times after drinking energy and control group limo needs to be researched. However, only the running times after drinking need to be taken into consideration, because it is assumed that participants run slower on the 'after' run due to fatigue of the first run. This effect works against what we want to investigate. This very same point of criticism also applies to question c, since that question asks for the time difference between the before and after group.
 
 
 ## Exercise 5. Chick weights
 The dataset chickwts is a data frame included in the standard R installation, to view it, type chickwts at the R prompt. This data frame contains 71 observations on newly-hatched chicks which were randomly allocated among six groups. Each group was given a different feed supplement for six weeks, after which their weight (in grams) was measured. The data frame consists of a numeric column giving the weights, and a factor column giving the name of the feed supplement.
 
-a) Test whether the distributions of the chicken weights for meatmeal and sunflower groups are different by performing three tests: the two samples t-test (argue whether the data are paired or not), the Mann-Whitney test and the Kolmogorov-Smirnov test. Comment on your findings.
+a) For the next statistical tests, the dataset 'chickwts' is used. We test whether the chicken weights for meatmeal and sunflower groups are different by performing three tests: the two samples t-test (argue whether the data are paired or not), the Mann-Whitney test and the Kolmogorov-Smirnov test.
 ```{r}
-# chickwts$feed
 sun = chickwts[chickwts$feed == "sunflower",]$weight
 meat = chickwts[chickwts$feed == "meatmeal",]$weight
-# sun$weight; meat$weight
 
-# hist(sun)
-# hist(meat)
-
-#check for normality, p > 0.05 means no reason to assume non-normal data.
+# check for normality
 shapiro.test(sun)
 shapiro.test(meat)
 
-t.test(sun,meat, paired = FALSE)
-wilcox.test(sun,meat)
-ks.test(sun,meat)
+# compare groups
+cat('two samples t-test p-value:\n',t.test(sun,meat, paired = FALSE)[[3]])
+cat('\n\nMann-Whitney test p-value:\n',wilcox.test(sun,meat)[[3]])
+cat('\n\nKolmogorov-Smirnov test p-value:\n',ks.test(sun,meat)[[2]])
 ```
-Welch two sample t-test p-value: 0.04
-Mann-Whitney test p-value: 0.07
-Kolmogorov-Smirnov test p-value: 0.1
 
-Since the chickens in both groups are unique the data is not paired. Paired data would be the case if we would measure the same chicken twice. The Welch's T-test gives a p-value of 0.04, hence rejecting H0 according to the common alpha=0.05, meaning that we have reason to assume that the true mean weights of the chickens with sunflower and meatmeal are different. 
+Since the chickens in both groups are unique, the data is not paired. Paired data would be the case if we would measure the same chicken twice. The Welch's T-test gives a p-value of .044, therefore, we would reject H0 according to alpha=0.05, meaning that we have reason to assume that the true mean weights of the chickens with sunflower and meatmeal are different. 
 
-The Mann-Whitney test has a p > 0.05, therefore we can not conclude from this test that the populations are unequal. Given that this is a non-parametric test it has less power than the parametric t-test, we therefore expect this p-value to be higher than the t-test. This test bases its p-value on the discrepancy between the mean ranks of ordered groups.
+The Mann-Whitney test has a p > 0.05, therefore we can not conclude from this test that the populations are unequal. This test bases its p-value on the discrepancy between the mean ranks of ordered groups.
 
-The KS-test has a p < 0.05, therefore we can conclude that the populations are unequal. This test bases its p-value on the largest discrepancy between two cummulative density frequency distributions from the two samples. 
+The KS-test too has a p-value >.05, therefore we cannot conclude that the populations are unequal. This test bases its p-value on the largest discrepancy between two cumulative density frequency distributions from the two samples. 
+
+We find discrepancy between p-values for the parametric and non-parametric tests. Given that the Mann-Whitney and KS test are non-parametric, generally speaking, these tests have less power than the parametric t-test, we therefore expect these p-values to be higher than the t-test. Since the t-test has more power than the non-parametric tests, we reject h0, and thus find significant evidence for a true difference between the means of the groups.
 
 
-b) Conduct a one-way ANOVA to determine whether the type of feed supplement has an effect on the weight of the chicks. Give the estimated chick weights for each of the six feed supplements. What is the best feed supplement?
+b) Next, a one-way ANOVA is performed to determine whether the type of feed supplement has an effect on the weight of the chicks. Therefore, the estimated chick weights for each of the six feed supplements is calculated.
 ```{r}
 chickwts = chickwts
 
 boxplot(weight ~ feed, data=chickwts,las=2)
-# stripchart(weight ~ feed, data=chickwts, vertical=TRUE,las=2)
 
 chickaov = lm(weight ~ feed, data = chickwts)
-anova(chickaov)
-```
-Given that the ANOVA only tells us that at least one of all the tested groups are different from the rest, thus no conclusions about the best feed supplement can be made. In addition to this, "best" is undefined in the question, meaning that we don't know what best means for the researcher. Maybe chickens with less weight variance can be sold more easily and are thus the "best", but maybe the highest mean weight can be sold for the most money and is thus the best. We simply don't know, therefore we can't state which group is the best with only the information given.
 
-c) Check the ANOVA model assumptions by using relevant diagnostic tools.
+cat('ANOVA p-value:\n', anova(chickaov)[[5]][1])
+```
+The ANOVA only tells us that at least one of all the tested groups are different from the rest, thus no conclusions about the best feed supplement can be made. In addition, "best" is undefined in the question, meaning that we don't know what best means for the researcher. Maybe chickens with less weight variance can be sold more easily and are thus the "best", but maybe the highest mean weight can be sold for the most money and is thus the best. We simply don't know, therefore we can't state which group is the best with only the information given.
+
+c) We then check whether the assumptions for the ANOVA are met. We first check the assumption of equal variances by plotting the residauls against the fitted values.
 ```{r}
 plot(chickaov, 1)
 ```
 This plot does not show a relationship between the fitted values and the residuals, allowing us to conclude that the assumption for equality of variances is met.
 
+Next, we test the assumption of normally distributed data. This is once again done with a QQ-plot and the Shapiro-Wilk test.
 ```{r}
 plot(chickaov, 2)
 shapiro.test(residuals(chickaov))
 ```
-This plot shows that the measurements follow the diagonal dotted line, allowing us to conclude that the assumption for normality is met. This claim is supported by the Shapiro–Wilk test since its p-value is higher than the common alpha of 0.05.
+This plot shows that the measurements follow the diagonal dotted line, allowing us to conclude that the assumption for normality is met. This claim is supported by the Shapiro–Wilk test since its p-value is non-significant.
 
 
 d) Does the Kruskal-Wallis test arrive at the same conclusion about the effect of feed supplement as the test in b)? Explain possible differences between conclusions of the Kruskal-Wallis and ANOVA tests.
 
-The ANOVA gives a p-value that states the probability that the means of three or more groups are equal. When the p-value is considered significant, then we can conclude that the mean of at least one group is different from the others.
-The Kruskal-wallis test is also able to compare distributions, but than for two groups rather than three or more. In addition to this, the Kruskal-wallis test bases its p-value on the largest discrepancy between two cummulative density frequency distributions from the two samples rather than the means.
+The ANOVA gives a p-value that states the probability that the distributions of the data of three or more groups are equal. When the p-value is considered significant, we can conclude that the distribution of the data of at least one group is different from the others.
+The Kruskal-Wallis test is also able to compare distributions, but than for two groups rather than three or more. In addition to this, the Kruskal-wallis test bases its p-value on the largest discrepancy between two cummulative density frequency distributions from the two samples rather than the means.
 
 
 
