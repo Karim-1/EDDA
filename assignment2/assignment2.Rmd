@@ -17,15 +17,12 @@ Group number: 49
 For all exercises, an $\alpha$ significance level of .05 is used, unless stated otherwise.
 
 
-For all exercises, an $\alpha$ significance level of .05 is used, unless stated otherwise.
-
-Exercise 1. Moldy bread
+### Exercise 1: Moldy bread
 If left alone bread will become moldy, rot or decay otherwise. To investigate the influence of temperature and humidity on this process, the time to decay was measured for 18 slices of white bread, which were placed in 3 different environments and humidified or not. The data are given in the file bread.txt, with the first column time to decay in hours, the second column the environment (cold, warm or intermediate temperature) and the third column the humidity.
-a) The 18 slices came from a single loaf, but were randomized to the 6 combinations of conditions. Present an R-code for this randomization process.
+**1a)** The 18 slices came from a single loaf, but were randomized to the 6 combinations of conditions. Present an R-code for this randomization process.
 
 ```{r}
 bread = read.table("bread.txt",header=TRUE)
-bread
 ```
 
 The randomization process of the data is done as followed:
@@ -35,19 +32,24 @@ rbind(rep(1:I,each=N*J),rep(1:J,N*I),sample(1:(N*I*J)))
 ```
 
 
-b) Make two boxplots of hours versus the two factors and two interaction plots (keeping the two factors fixed in turn).
-```{r}
+**1b)** Make two boxplots of hours versus the two factors and two interaction plots (keeping the two factors fixed in turn).
+Next, we create two boxplots of the hours to decay in relation to the two factors.
+
+```{r message=FALSE, warning=FALSE}
 attach(bread)
+par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
 boxplot(hours~environment)
 boxplot(hours~humidity)
 ```
+
+We also create the interaction plots for both factors, which can be observed below.
 ```{r}
+par(mfrow=c(1,2))
 interaction.plot(environment, humidity, hours)
 interaction.plot(humidity, environment, hours)
 ```
 
-
-c) Perform an analysis of variance to test for effect of the factors temperature, humidity, and their interaction. Describe the interaction effect in words.
+**1c)** Perform an analysis of variance to test for effect of the factors temperature, humidity, and their interaction. Describe the interaction effect in words.
 
 We define the alternative hypothesis as followed:
 - There is an effect of environment's temperature on the decay of bread ($H_A$)
@@ -66,14 +68,64 @@ The p-value for both $H_0$ with factors $A_i =0$ and $B_j =0$ for all $i$ is <0.
 
 The p-value for the interaction effect between the factors $H0 :\gamma_{i,j} =0$ too is <0.001. From this, we may accept the alternative hypothesis that there is a interaction effect between the environment's temperature and humidity on the decay of the bread.
 
-d) Which of the two factors has the greatest (numerical) influence on the decay? Is this a good question?
+**1d)** Which of the two factors has the greatest (numerical) influence on the decay? Is this a good question?
 
 Based on the ANOVA of the two factors, it can be noted that the $F_A$ (233.7) is higher than $F_B$ (62.3). From this, we can conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay. However, since an interaction effect was found between the two factors, this conclusion can not be made. (Because of this, "which of the two factors has the greatest influence is" is not a good question.) (TODO: dit nog checken met college)
 
-e) Check the model assumptions by using relevant diagnostic tools. Are there any outliers?
+**1e)** Check the model assumptions by using relevant diagnostic tools. Are there any outliers?
 Lastly, we check the model assumptions using relevant diagnostic tools. These assumptions consist of normality and equal variances of the residuals.
 ```{r}
 qqnorm(residuals(breadov))
 plot(fitted(breadov),residuals(breadov))
 ```
 In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks relatively stable for all fitted values, which implies that there is no relationship between residuals and fitted values. Therefore, homogeneity of variance can be assumed. Nevertheless, some of the data points (marked with a red circle) look to be slightly extreme however. These may have a severely affect the normality of the data. We may consider these outliers and trim the data of these values.
+
+
+
+
+### Exercise 4: Jane Austen
+Stochastic models for word counts are used in quantitative studies on literary styles. Statistical analysis of the counts can, for example, be used to solve controversies about true authorships. Another example is the analysis of word frequencies in relation to Jane Austen’s novel Sanditon. At the time Austen died, this novel was only partly completed. Austen, however, had made a summary for the remaining part. An admirer of Austen’s work finished the novel, imitating Austen’s style as much as possible. The file austen.txt contains counts of different words in some of Austen’s novels: chapters 1 and 3 of Sense and Sensibility (stored in the Sense column), chapters 1, 2 and 3 of Emma (column Emma), chapters 1 and 6 of Sanditon (both written by Austen herself, column Sand1) and chapters 12 and 24 of Sanditon (both written by the admirer, Sand2).
+**4a)** Discuss whether a contingency table test for independence or for homogeneity is most appropriate here.
+In order to analyze the word count of the chapters of the finished novel, we look to see whether the word count in the chapter written by her admirer are consistent with the word count written by Jane Austen's herself. We therefore look to see whether the proportion of word counts are consistent Austin's original work and the finished work by her admirer. Because of this, a contingency table for homogeneity is appropriate, to check whether the distribution of word counts are equal between the original work of Austen (Sense, Emma, Sand1) and her admirer (Sand2).
+
+**4b)** Using the given data set, investigate whether Austen herself was consistent in her different novels.
+Where are the main inconsistencies?
+
+To investigate whether Austen's work was consistent in her different novels, we regard the Sense, Emma and Sand1 column of the dataset. We then calculate the sum of each row and column and the total word count. With these sums of the rows and columns and the total word count, we can calculate the expected value for each cell. These computations are done by the build in chisq.test function of R. The result of the Chi-squared test can be observed below.
+
+```{r}
+wordcounts = read.table("austen.txt", header=TRUE)
+austen = subset(wordcounts, select = c('Sense', 'Emma', 'Sand1'))
+z=chisq.test(austen)
+z
+```
+The p-value is .3. From this we can conclude that the word counts for each combination of word and book chapters are not independent of each other. This is to be expected, as these chapters are all written by the same Author. To consider inconsistencies in the rows and columns, we observe the residuals of the cells (the square root contribution of each cell to the chi-square statistic.) These values give an indication of how much cell values differ from the expected values under $H_0$.
+
+```{r}
+z$residuals
+```
+From the table, inconsistencies with regards to the expected wordcounts can be observed. The main inconsistencies are listed below:
+- The word 'a' was used more often in Sanditon than in Sense and Sensibility book.
+- The word 'without' was used much less in Emma as opposed to the other two books.
+- The word 'that' was used less in Sanditon than in her other two books.
+
+
+**4c)** Was the admirer successful in imitating Austen’s style? Perform a test including all data. If he was
+not successful, where are the differences?
+
+Next, we check whether the admirer successful in imitating Austen’s style. We do this by adding back the column with the admirer's word counts and once again performing a chi-square test.
+```{r}
+z1=chisq.test(wordcounts)
+z1
+```
+The p-value is now smaller than .001, meaning that after adding back the Sand2 column, the word counts may be considered independent on each other. We can investigate where these differences lay if we once again investigate the contribution of each to the chi-square test statistic with the residuals.
+
+```{r}
+z1$residuals
+```
+
+From the table we can gather that these differences lay;
+- The admirer uses the word 'an' much more often than Austen relatively.
+- The admirer uses the word 'that' far less often than Austen relatively.
+- The admirer uses the word 'with' more often than Austen relatively.
+(In comparison to the expected word count under $H_0$.)
