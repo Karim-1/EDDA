@@ -145,31 +145,127 @@ investigate the problem of potential and influence points and the problem of col
 expenses[1:3,]
 # deze snap ik nog niet 100% maar ziet er vet uit
 plot(expenses[,c(2,4,7)]); par(mfrow=c(1,3))
+pairs(expenses[2:length(expenses)])
 
-expenses[1:3, c(2,4,7)]
+# expenses[1:3, c(2,4,7)]
 
-for (i in c(2,4,7)) {
+# for (i in c(2,4,7)) {
+#   hist(expenses[,i], main=names(expenses)[i])
+# }
+
+par(mfrow=c(2,3))
+for (i in 2:7) {
   hist(expenses[,i], main=names(expenses)[i])
 }
-```
 
+
+
+```
 **5b**
 Linear regression model to the data
 expend as response variable
-use tep-up and step-down method to find the best model
-if step up and step down yield two different models, choose one and motivate your choice
 ```{r}
-multiregression = lm(expend~bad+crime+lawyers+employ+pop, data=expenses)
-summary(multiregression)
-# plot(multiregression)
-
+expenslm = lm(expend~bad+crime+lawyers+employ+pop, data=expenses)
+summary(expenslm)
 ```
 multiple regression results in a p-value of 2e-16, this is smaller than 0.05 and thus we reject H0.
+NOG FF H0 uitleggen en goed hebben wat dat precies is
+
+step up step down
+use step-up and step-down method to find the best model
+if step up and step down yield two different models, choose one and motivate your choice
+
+step up
+```{r}
+factors = colnames(expenses)[3:length(colnames(expenses))]
+print("Starting with following factors:"); factors
+
+# 1st factor
+R2 = numeric(length(factors))
+
+for (i in 1:length(factors)) {
+  R2[i] = summary(lm(paste('expend',  '~', factors[i]), data=expenses))[[8]]
+}
+R2
+factor_one = factors[which.max(R2)]
+print(paste0("Factor with highest R^2 value: ", factor_one))
+
+# remove chosen first factor from list
+factors = factors[-which.max(R2)]
+print("Factors left: "); factors
+
+
+# 2nd factor
+R2 = numeric(length(factors))
+for (i in 1:length(factors)) {
+  R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factors[i]), data=expenses))[[8]]
+}
+R2
+factor_two = factors[which.max(R2)]
+print(paste0("Factor with highest R^2 value: ", factor_two))
+
+# remove chosen second factor from list
+factors = factors[-which.max(R2)]
+print("Factors left: "); factors
+
+
+# 3rd factor
+R2 = numeric(length(factors))
+for (i in 1:length(factors)) {
+  R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factors[i]), data=expenses))[[8]]
+}
+R2
+factor_three = factors[which.max(R2)]
+print(paste0("Factor with highest R^2 value: ", factor_three))
+
+# remove chosen third factor from list
+factors = factors[-which.max(R2)]
+print("Factors left: "); factors
+
+
+# 4th factor
+R2 = numeric(length(factors))
+for (i in 1:length(factors)) {
+  R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factor_three, '+', factors[i]), data=expenses))[[8]]
+}
+R2
+factor_four = factors[which.max(R2)]
+print(paste0("Factor with highest R^2 value: ", factor_four))
+
+last_factor = factors[-which.max(R2)]
+print(paste0("last factor left: ", last_factor))
+
+# resulting in the model.... lecture 8 slide 11. is na employ gekozen te hebben de increase in R2, van 0.954 naar 0.963 al niet meer significant dus stoppen?
+
+```
+step-down
+```{r}
+# start with all variables
+# summary(lm(expend~bad+crime+lawyers+employ+pop, data=expenses))
+
+# crime has highest p value of 0.2553, thus remove crime
+# summary(lm(expend~bad+lawyers+employ+pop, data=expenses))
+
+# pop has highest p value of 0.0601, thus remove pop
+summary(lm(expend~bad+lawyers+employ, data=expenses))
+
+# bad has highest p value of 0.3450, thus remove bad
+summary(lm(expend~lawyers+employ, data=expenses))
+
+# both lawyers and employ are smaller than 0.05, thus final model is line above.
+# that gives:
+# expend = -1.11e+02 + 2.69-02 * lawyers + 2.97e-02 * employ + error
+
+
+```
+
+
 
 **5c**
 Check model assumptions by using relevant diagnostic tools.
 (lecture 8, diagnostics in linear regression)
 ```{r}
-
+qqnorm(residuals(expenslm))
+plot(fitted(expenslm),residuals(expenslm))
 ```
 
