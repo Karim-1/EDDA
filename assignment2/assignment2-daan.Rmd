@@ -5,24 +5,171 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(digits=3)
 ```
 
-## R Markdown
+```{r}
+students = read.table("search.txt",header=TRUE)
+students
+```
+**2a** 
+randomised block design
+```{r echo=FALSE}
+# lower the skill value the better the computer skill
+# randomized block design
+# numerical outcome Y
+# treatment, factor of interest with I levels (type of interface)
+# block, factor that is not of interest, B, (computer skill)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# purpose is to find dependence of Y on I
+# block variable is thought to be of influence.
+# our problem is same as example lec5slide23
+I = 3
+B = 5
+N = 1
+for (b in 1:B) {
+  print(sample(1:(N*I)))
+}
+# maar hoe dat 15 studenten erin worden vernoemd?
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+# example output: 2 3 1
+# means: assign student 2 to treatment 3, student 3 to treatment 1 and student 1 to treatment 2
 
-```{r cars}
-summary(cars)
+# unit is that that receives the treatment, so student
+```
+**2b**
+```{r echo=FALSE}
+attach(students)
+qqnorm(time)
+shapiro.test(time)
+# normality is questionable, so kruskall willis
+boxplot(time)
+stripchart(time~interface, vertical = TRUE)
+
+# test null hypothesis that search time is equal for all interfaces
+# if not normal i guess KW
+# kruskal.test(time~interface)
+
+# if normal then two way anova
+interaction.plot(interface,skill,time)
+# students$interface = as.factor(students$interface)
+# students$skill = as.factor(students$skill)
+studentsaov2 = lm(time~interface*skill)
+anova(studentsaov2)
+
+```
+--------- If assume normal then this:
+p value for interface:skill is 0.340. So there is no evidence for interaction. 
+
+
+------- If assume not normal then this:
+The krukal willis test was used because of questionable normality. The KW test returns a p-value of 0.1 which is greater than 0.05 and thus we accept the H0 hypothesis. This means there is no significant difference between interfaces.
+// nog ff checken
+
+What type of interface requires the longest search time?
+```{r}
+inter1 = mean(students$time[interface==1])
+inter2 = mean(students$time[interface==2])
+inter3 = mean(students$time[interface==3])
+which.max(c(inter1, inter2, inter3))
+```
+interface 3 has the highest mean search time. TODO: probably not enough.
+
+Which combination of skill and interface is search time shortest
+```{r}
+
 ```
 
-## Including Plots
+estimate time it takes for skill level 3 to find product with interface 3
+So treatment(I) = 3, block(B)=3
 
-You can also embed plots, for example:
+Found on wiki:
+estimate for B_j: barY_j - barY with barY_j
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+```{r}
+
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+**2c**
+check the model assumptions by using relevant diagnostic tools
+```{r}
+
+```
+
+**2d**
+Perform the Friedman test to test whether ther is an effect of interface
+```{r}
+interaction.plot(students$interface, students$skill, students$time)
+friedman.test(time,interface,skill,data=students)
+```
+The Friedman test gives us a p-value of 0.04. This is smaller than 0.05 and thus we reject the H0 hypothesis. This mean that the interface has an effect on the search time.
+
+**2e**
+test H0 that search time is the same for all interfaces by a one-way ANOVA, ignoring the variable skill. is it right/wrong or useful/not useful to perform this test on this dataset.
+```{r}
+studentsaov = lm(time ~ interface, data=students)
+plot(studentsaov,1)
+# plot(studentsaov,2)
+
+anova(studentsaov)
+summary(studentsaov)
+# qqnorm(residuals(studentsaov))
+# plot(fitted(studentsaov),residuals(studentsaov))
+# fitted(studentsaov)
+# residuals(studentsaov)
+```
+p-value < 0.05 thus we reject H0. There is a significant difference between interfaces. It is wrong to use a one-way ANOVA test here because the normality of the data is questionable... (MIGHT NEED MORE). 
+Is it useful or not? I think not because not normal. However, Kruskal willis accepts H0, and Friedman rejects H0. Look up what this means/how to argue about this in relation to ANOVA begin useful or not.
+
+
+**5**
+```{r echo=FALSE}
+expenses = read.table("expensescrime.txt",header=TRUE)
+expenses
+```
+
+**5a**
+make some graphical summaries
+investigate the problem of potential and influence points and the problem of collinearity
+```{r}
+# attach(expenses)
+# boxplot(expend~bad)
+# pop
+# employ
+# plot(employ/(pop*1000), crime)
+# boxplot(expend~crime)
+
+# this is from slides lecture 7 slide 28.
+expenses[1:3,]
+# deze snap ik nog niet 100% maar ziet er vet uit
+plot(expenses[,c(2,4,7)]); par(mfrow=c(1,3))
+
+expenses[1:3, c(2,4,7)]
+
+for (i in c(2,4,7)) {
+  hist(expenses[,i], main=names(expenses)[i])
+}
+```
+
+**5b**
+Linear regression model to the data
+expend as response variable
+use tep-up and step-down method to find the best model
+if step up and step down yield two different models, choose one and motivate your choice
+```{r}
+multiregression = lm(expend~bad+crime+lawyers+employ+pop, data=expenses)
+summary(multiregression)
+# plot(multiregression)
+
+```
+multiple regression results in a p-value of 2e-16, this is smaller than 0.05 and thus we reject H0.
+
+**5c**
+Check model assumptions by using relevant diagnostic tools.
+(lecture 8, diagnostics in linear regression)
+```{r}
+
+```
+

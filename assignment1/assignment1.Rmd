@@ -80,14 +80,13 @@ for (b in 1:B) {
 a <- table(p)
 cat('proportion of p-values < .05:\n', length(a[names(a)<0.05])/length(a))
 ```
-
 From the 1000 generated samples a fraction of 0.558 samples have p-values lower than 0.05.
 
 a) We first calculate the t-test with n=m=30, mu=180 and sd=5 for every value of nu in the grid seq(175,185,by=0.25).
 ```{r}
 n=m=30
 mu=180
-nus=seq(175,185,by=0.25)
+nus=seq(175,185,by=0.25); nus
 sd=5
 
 powers = numeric(length(nus))
@@ -426,11 +425,12 @@ We find discrepancy between p-values for the parametric and non-parametric tests
 
 b) Next, a one-way ANOVA is performed to determine whether the type of feed supplement has an effect on the weight of the chicks. Therefore, the estimated chick weights for each of the six feed supplements is calculated.
 ```{r}
-chickwts = chickwts
+chickwts = chickwts; chickwts
 
 boxplot(weight ~ feed, data=chickwts,las=2)
 
 chickaov = lm(weight ~ feed, data = chickwts)
+summary(chickaov)
 
 cat('ANOVA p-value:\n', anova(chickaov)[[5]][1])
 ```
