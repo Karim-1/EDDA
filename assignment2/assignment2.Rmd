@@ -234,19 +234,19 @@ plot(cooks.distance(model_temp),type="b", main="Cook's distances for bad")
 # round(cooks.distance(model_temp), 2)
 # plot(expend, crime)
 # plot(cooks.distance(model_temp),type="b", main="Cook's distances for crime")
-
+# 
 # model_temp = lm(expend~lawyers)
 # print("lawyers cook's distances:")
 # round(cooks.distance(model_temp), 2)
 # plot(expend, lawyers)
 # plot(cooks.distance(model_temp),type="b", main="Cook's distances for lawyers")
-
+# 
 # model_temp = lm(expend~employ)
 # print("employ cook's distances:")
 # round(cooks.distance(model_temp), 2)
 # plot(expend, employ)
-# plot(cooks.distance(model_temp),type="b", main="Cook's distances for bemploy")
-
+# plot(cooks.distance(model_temp),type="b", main="Cook's distances for employ")
+# 
 # model_temp = lm(expend~pop)
 # print("pop cook's distances:")
 # round(cooks.distance(model_temp), 2)
