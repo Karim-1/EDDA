@@ -1,28 +1,256 @@
----
-title: "assignment2-ramon"
-output: html_document
----
+# ---
+# title: "assignment2-ramon"
+# output: html_document
+# ---
+# 
+# ```{r setup, include=FALSE}
+# knitr::opts_chunk$set(echo = TRUE)
+# ```
+# 
+# ## R Markdown
+# 
+# This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# 
+# When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+# 
+# ```{r cars}
+# summary(cars)
+# ```
+# 
+# ## Including Plots
+# 
+# You can also embed plots, for example:
+# 
+# ```{r pressure, echo=FALSE}
+# plot(pressure)
+# ```
+# 
+# Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+# 
+# 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+
+
+# Exercise 3. Feedingstuffs for cows
+In a study on the effect of feedingstuffs on lactation, a sample of nine cows were fed food of two types, and their milk production was measured. All cows were fed both types of food, during two periods, with a neutral period in-between to try and wash out carry-over effects. The order of the types of food was randomized over the cows. The observed data can be found in the file cow.txt, where A and B refer to the types of feedingstuffs.
+
+a) Test whether the type of feedingstuffs influences milk production using an ordinary “fixed effects” model, fitted with lm. Estimate the difference in milk production.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(lme4)
+# load data
+cow=read.table("cow.txt",header=TRUE)
+cow$treatment=factor(cow$treatment)
+cow$id=factor(cow$id)
+cow$per=factor(cow$per)
+cow$order=factor(cow$order)
+attach(cow)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Check assumptions:
+```{r}
+plot(lm(milk~id+per+treatment), 1)
+plot(lm(milk~id+per+treatment), 2)
+```
+This plot does show a relationship between the fitted values and the residuals as the data does not follow the dotted line, allowing us to conclude that the assumption for equality of variances is not met. In addition to this, the assumption for normality is also not met as the data in the normal Q-Q plot does not follow the dotted line.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+
+```{r}
+# boxplot(milk~treatment)
+
+# fixed effect analysis, slide 20 lecture 6
+
+
+
+
+print("ANOVA")
+anova(lm(milk~id+per+treatment))
+
+print("LM summary")
+summary((lm(milk~id+per+treatment)))
+
+
+```
+From this model we can't conclude that feedingstuffs A and B have an effect on milk production with the fixed effect model since the corresponding ANOVA p-value is 0.51654.
+In the given data Feedingstuff A gives 0.5100 less milk than feedingstuff B.
+
+
+slide 21:
+The “fixed effects” analysis given here is not the correct implementation of the model assumptions. The “mixed effects” ought to be used instead with id as random factor.
+
+
+
+
+
+
+b) Repeat a) by performing a mixed effects analysis, modeling the cow effect as a random effect (use the function lmer). Compare your results to the results found by using a fixed effects model. (You will need to install the R-package lme4, which is not included in the standard distribution of R.)
+
+
+```{r}
+cowlmer = lmer(milk~order+per+treatment+(1|id))
+cowlmer_reduced = lmer(milk~order+per+(1|id), REML=FALSE)
+(anova(cowlmer_reduced, cowlmer))
+```
+In the mixed effects model the p value of 0.446 is lower than the fixed effects model but still not significant.
+
+
+c) Study the commands:
+- attach(cow)
+- t.test(milk[treatment=="A"],milk[treatment=="B"],paired=TRUE)
+Does this produce a valid test for a difference in milk production? Is its conclusion compatible with the one obtained in a)? Why?
+
+
+```{r}
+t.test(milk[treatment=="A"],milk[treatment=="B"],paired=TRUE)
 ```
 
-## Including Plots
+These commands do not produce a valid test for a difference in milk production because the assumptions for the t-test are not checked in these two commands. In addition to this, due to the possibility of interaction effects the paired t-test should not be used but rather the mixed effects ANOVA, which takes these into account.
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+cowlmer = lmer(milk~order+treatment+per+(1|id))
+cowlmer_reduced = lmer(milk~order+treatment+(1|id), REML=FALSE)
+(anova(cowlmer_reduced, cowlmer))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+When we check for the sequence effect we indeed find that the sequence has significant effect with a p=0.00439. The paired t-test is not valid for our data because the two sequences (8 times AB and 10 times BA) are not equally distributed over the cows and have a significant effect as shown before, meaning that with the paired t-test not just includes the difference in milk production but also the significant sequence effect.
+
+
+This conclusion is (not) compatible with the one obtained in a) because....
+
+# Exercise 5. Expenditure on criminal activities
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(lme4)
+# load data
+# cri=read.table("expensescrime.txt",header=TRUE)
+# cri$state=as.factor(cri$state)
+# attach(cri)
+```
+
+```{r echo=FALSE}
+expenses = read.table("expensescrime.txt",header=TRUE)
+expenses$state=as.factor(expenses$state)
+attach(expenses)
+expenses
+```
+
+
+The data in expensescrime.txt were obtained to determine factors related to state expenditures on criminal activities (courts, police, etc.) The variables are: state (indicating the state in the USA), expend (state expenditures on criminal activities in $1000), bad (crime rate per 100000), crime (number of persons under criminal supervision), lawyers (number of lawyers in the state), employ (number of persons employed in the state) and pop (population of the state in 1000). In the regression analysis, take expend as response variable and bad, crime, lawyers, employ and pop as explanatory variables.
+
+a) Make some graphical summaries of the data. Investigate the problem of potential and influence points, and the problem of collinearity.
+
+```{r}
+# attach(expenses)
+# boxplot(expend~bad)
+# pop
+# employ
+# plot(employ/(pop*1000), crime)
+# boxplot(expend~crime)
+
+# this is from slides lecture 7 slide 28.
+expenses[1:3,]
+# deze snap ik nog niet 100% maar ziet er vet uit
+plot(expenses[,c(2,4,7)]); par(mfrow=c(1,3))
+
+expenses[1:3, c(2,4,7)]
+
+for (i in c(2,4,7)) {
+  hist(expenses[,i], main=names(expenses)[i])
+}
+```
+
+
+
+problem of potential and influence points:
+```{r}
+model_temp = lm(expend~bad)
+print("bad")
+round(cooks.distance(model_temp), 2)
+plot(expend, bad)
+plot(cooks.distance(model_temp),type="b", main="Cook's distances for bad")
+# 
+model_temp = lm(expend~crime)
+print("crime")
+round(cooks.distance(model_temp), 2)
+plot(expend, crime)
+plot(cooks.distance(model_temp),type="b", main="Cook's distances for crime")
+# 
+model_temp = lm(expend~lawyers)
+print("lawyers")
+round(cooks.distance(model_temp), 2)
+plot(expend, lawyers)
+plot(cooks.distance(model_temp),type="b", main="Cook's distances for lawyers")
+# 
+model_temp = lm(expend~employ)
+print("employ")
+round(cooks.distance(model_temp), 2)
+plot(expend, employ)
+plot(cooks.distance(model_temp),type="b", main="Cook's distances for bemploy")
+
+model_temp = lm(expend~pop)
+print("pop")
+round(cooks.distance(model_temp), 2)
+plot(expend, pop)
+plot(cooks.distance(model_temp),type="b", main="Cook's distances for pop")
+```
+The following influence points are identified using the thumb's rule that identifies an influence point when Cook's distances > 0.95:
+- "Bad" datapoint-cook's_distance: 5-2.74, 44-8.55
+- "lawyers" datapoint-cook's_distance: 5-3.69
+- "employ" datapoint-cook's_distance: 5-7.00
+- "pop" datapoint-cook's_distance: 5-2.23, 35-1.76
+
+The following explanatory variables have no influence points:
+- crime
+
+To reduce the plots in this report we only show bad as example, but similar plots are used to identify the other explanatory variables. The rows 5, 35 and 44 are removed from the dataset since those have influence points.
+
+```{r message=FALSE, warning=FALSE}
+expenses = expenses[-c(5, 35, 44), ]
+attach(expenses)
+```
+
+
+---- MOETEN WE DIT HERLALEN TOT ER GEEN INFLUENCE POINTS MEER ZIJN OF IS EEN KEER GENOEG? ----
+We then repeat the process above to identify more influence points. lawyers point 7 and bad point 10 are identified as influence points and are thus removed from the dataset: 
+
+```{r message=FALSE, warning=FALSE}
+expenses = expenses[-c(7, 10), ]
+attach(expenses)
+```
+
+and even more influence points emerge when re-analysing them...
+
+
+
+
+Problem of collinearity:
+```{r}
+plot(expenses[,c(3, 4, 5, 6, 7)])
+round(cor(expenses[,c(3, 4, 5, 6, 7)]), 2)
+```
+From the scatter plot and correlation values we can see that the following explanatory variables are likely to be collinear since those combinations have data points that show a linear relation and have a high correlation coefficient:
+pop-employ
+pop-lawyers
+pop-bad
+employ-bad
+employ-lawyers
+
+
+
+```{r}
+crilm = (lm(expend~bad+crime+lawyers+employ+pop))
+summary(crilm)
+qqnorm(residuals(crilm))
+plot(fitted(crilm),residuals(crilm))
+```
+
+b) Fit a linear regression model to the data. Use both the step-up and the step-down method to find the best model. If step-up and step-down yield two different models, choose one and motivate your choice.
+
+c) Check the model assumptions by using relevant diagnostic tools.
+
+
+
