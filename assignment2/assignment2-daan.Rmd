@@ -205,39 +205,44 @@ factor_two = factors[which.max(R2)]
 print(paste0("Factor with highest R^2 value: ", factor_two))
 
 # remove chosen second factor from list
-factors = factors[-which.max(R2)]
-print("Factors left: "); factors
+# factors = factors[-which.max(R2)]
+# print("Factors left: "); factors
 
 
-# 3rd factor
-R2 = numeric(length(factors))
-for (i in 1:length(factors)) {
-  R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factors[i]), data=expenses))[[8]]
-}
-R2
-factor_three = factors[which.max(R2)]
-print(paste0("Factor with highest R^2 value: ", factor_three))
-
-# remove chosen third factor from list
-factors = factors[-which.max(R2)]
-print("Factors left: "); factors
-
-
-# 4th factor
-R2 = numeric(length(factors))
-for (i in 1:length(factors)) {
-  R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factor_three, '+', factors[i]), data=expenses))[[8]]
-}
-R2
-factor_four = factors[which.max(R2)]
-print(paste0("Factor with highest R^2 value: ", factor_four))
-
-last_factor = factors[-which.max(R2)]
-print(paste0("last factor left: ", last_factor))
+# # 3rd factor
+# R2 = numeric(length(factors))
+# for (i in 1:length(factors)) {
+#   R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factors[i]), data=expenses))[[8]]
+# }
+# R2
+# factor_three = factors[which.max(R2)]
+# print(paste0("Factor with highest R^2 value: ", factor_three))
+# 
+# # remove chosen third factor from list
+# factors = factors[-which.max(R2)]
+# print("Factors left: "); factors
+# 
+# 
+# # 4th factor
+# R2 = numeric(length(factors))
+# for (i in 1:length(factors)) {
+#   R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factor_three, '+', factors[i]), data=expenses))[[8]]
+# }
+# R2
+# factor_four = factors[which.max(R2)]
+# print(paste0("Factor with highest R^2 value: ", factor_four))
+# 
+# last_factor = factors[-which.max(R2)]
+# print(paste0("last factor left: ", last_factor))
 
 # resulting in the model.... lecture 8 slide 11. is na employ gekozen te hebben de increase in R2, van 0.954 naar 0.963 al niet meer significant dus stoppen?
 
+summary(lm(expend~crime), data=expenses)
+
 ```
+For crime 0.954 then another variable we see lawyers is highest with 0.963. This increase is not worth it for another variable and thus the model results in:
+expend = -531.039 + 0.287 * crime + error
+
 step-down
 ```{r}
 # start with all variables
