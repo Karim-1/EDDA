@@ -54,12 +54,18 @@ Test the null hypothesis that the search time is the same for all interfaces.
 
 What type of interface does require the longest search time? For which combination of skill level and type of interface is the search time the shortest? Estimate the time it takes a typical user of skill level 3 to find the product on the website if the website uses interface 3.
 ```{r message=FALSE, warning=FALSE}
+students$interface = as.factor(students$interface)
+students$skill = as.factor(students$skill)
 attach(students)
-interaction.plot(interface,skill,time)
-# students$interface = as.factor(students$interface)
-# students$skill = as.factor(students$skill)
 
-studentslm = lm(time~interface+skill)
+par(mfrow=c(1,2))
+
+boxplot(time~interface)
+boxplot(time~skill)
+
+interaction.plot(interface,skill,time)
+
+studentslm = lm(time~interface*skill)
 # anova(studentsaov2)
 ```
 --------- If assume normal then this:
@@ -81,7 +87,7 @@ interface 3 has the highest mean search time.
 
 Which combination of skill and interface is search time shortest
 ```{r}
-summary(studentslm)
+students[which.min(students$time),]
 ```
 
 estimate time it takes for skill level 3 to find product with interface 3
@@ -92,8 +98,7 @@ estimate for B_j: barY_j - barY with barY_j
 
 
 ```{r}
-
-
+summary(studentslm)
 ```
 
 **2c**

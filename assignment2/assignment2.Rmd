@@ -165,7 +165,8 @@ I think it is because with the fixed model no interactions are assumed, just lik
 ### Exercise 4: Jane Austen
 Stochastic models for word counts are used in quantitative studies on literary styles. Statistical analysis of the counts can, for example, be used to solve controversies about true authorships. Another example is the analysis of word frequencies in relation to Jane Austen’s novel Sanditon. At the time Austen died, this novel was only partly completed. Austen, however, had made a summary for the remaining part. An admirer of Austen’s work finished the novel, imitating Austen’s style as much as possible. The file austen.txt contains counts of different words in some of Austen’s novels: chapters 1 and 3 of Sense and Sensibility (stored in the Sense column), chapters 1, 2 and 3 of Emma (column Emma), chapters 1 and 6 of Sanditon (both written by Austen herself, column Sand1) and chapters 12 and 24 of Sanditon (both written by the admirer, Sand2).
 **4a)** Discuss whether a contingency table test for independence or for homogeneity is most appropriate here.
-In order to analyze the word count of the chapters of the finished novel, we look to see whether the word count in the chapter written by her admirer are consistent with the word count written by Jane Austen's herself. We therefore look to see whether the proportion of word counts are consistent Austin's original work and the finished work by her admirer. Because of this, a contingency table for homogeneity is appropriate, to check whether the distribution of word counts are equal between the original work of Austen (Sense, Emma, Sand1) and her admirer (Sand2).
+
+In order to analyze the word count of the chapters of the finished novel, we look to see whether the word count in the chapter written by her admirer are consistent with the word count written by Jane Austen's herself. We therefore test the null hypothesis that the proportion of word counts are consistent between Austin's original work and the finished work by her admirer. Because of this, a contingency table for homogeneity is appropriate. With a contigency table for homogeinity we can check whether the distribution of word counts are equal between the original work of Austen (Sense, Emma, Sand1) and her admirer (Sand2).
 
 **4b)** Using the given data set, investigate whether Austen herself was consistent in her different novels.
 Where are the main inconsistencies?
@@ -175,10 +176,11 @@ To investigate whether Austen's work was consistent in her different novels, we 
 ```{r}
 wordcounts = read.table("austen.txt", header=TRUE)
 austen = subset(wordcounts, select = c('Sense', 'Emma', 'Sand1'))
+austen
 z=chisq.test(austen)
 z
 ```
-The p-value is .3. From this we can conclude that the word counts for each combination of word and book chapters are not independent of each other. This is to be expected, as these chapters are all written by the same Author. To consider inconsistencies in the rows and columns, we observe the residuals of the cells (the square root contribution of each cell to the chi-square statistic.) These values give an indication of how much cell values differ from the expected values under $H_0$.
+The p-value is .3. Based on this, we will not reject the null hypothesis that the proportion of word counts differs significantly between Austen's book chapters. This is to be expected, as these chapters are all written by the same author. To consider inconsistencies in the rows and columns, we observe the residuals of the cells (the square root contribution of each cell to the chi-square statistic.) These values give an indication of how much cell values differ from the expected values under $H_0$.
 
 ```{r}
 z$residuals
@@ -197,7 +199,7 @@ Next, we check whether the admirer successful in imitating Austen’s style. We 
 z1=chisq.test(wordcounts)
 z1
 ```
-The p-value is now smaller than .001, meaning that after adding back the Sand2 column, the word counts may be considered independent on each other. We can investigate where these differences lay if we once again investigate the contribution of each to the chi-square test statistic with the residuals.
+The p-value is now smaller than .001. Based on this we will reject the null hypothesis. This implies that after adding back the Sand2 column, we can assume that the proportion of word counts are not equal between cells. We can investigate where these differences lay if we once again investigate the contribution of each to the chi-square test statistic with the residuals.
 
 ```{r}
 z1$residuals
