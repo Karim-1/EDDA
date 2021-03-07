@@ -30,7 +30,7 @@ The randomization process of the data is done as followed:
 I=3; J=2; N=3
 rbind(rep(1:I,each=N*J),rep(1:J,N*I),sample(1:(N*I*J)))
 ```
-
+Here you can see the random want blabla (explain which axis are which)
 
 **1b)** Make two boxplots of hours versus the two factors and two interaction plots (keeping the two factors fixed in turn).
 Next, we create two boxplots of the hours to decay in relation to the two factors.
@@ -66,21 +66,23 @@ bread$humidity=as.factor(bread$humidity)
 breadov=lm(hours~environment*humidity)
 anova(breadov)
 ```
-The p-value for both $H_0$ with factors $A_i =0$ and $B_j =0$ for all $i$ is <0.001. From this, we can conclude the the variation within different environments is much larger than within environments. The same can be concluded for humidity; the variation between a dry and wet environment is higher than within those two environments. Therfore a main effect is found for both variables and we may accept the alternative hypothesis that there is a significant relationship between a bread's environment and its decay, as well as between the humidity and decay of bread (within our confidence interval).
+The p-value for both $H_0$ with factors $A_i=0$ and $B_j =0$ (TODO, dit iets anders schrijven) for all $i$ is <0.001, which is lower than our significance value \alpha (.05). From this, we can conclude the the variation between different environments is much larger than within environments. The same can be concluded for humidity; the variation between a dry and wet environment is higher than within those two environments. Therefore, a main effect is found for both variables and we may accept the alternative hypothesis that there is a significant relationship between a bread's environment and its decay, as well as between the humidity and decay of bread (within our confidence interval).
 
-The p-value for the interaction effect between the factors $H0 :\gamma_{i,j} =0$ too is <0.001. From this, we may accept the alternative hypothesis that there is a interaction effect between the environment's temperature and humidity on the decay of the bread.
+The p-value for the interaction effect between the factors $H0 :\gamma_{i,j} =0$ too is <0.001. From this, we may accept the alternative hypothesis that there is a interaction effect between the environment's temperature and humidity on the decay of the bread. This confirms our findings in the interaction plot in 1c), where we observed that the lines are not parallel to each other. TODO: interpretatie. 
 
 **1d)** Which of the two factors has the greatest (numerical) influence on the decay? Is this a good question?
 
-Based on the ANOVA of the two factors, it can be noted that the $F_A$ (233.7) is higher than $F_B$ (62.3). From this, we can conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay. However, since an interaction effect was found between the two factors, this conclusion can not be made. (Because of this, "which of the two factors has the greatest influence is" is not a good question.) (TODO: dit nog checken met college)
+Based on the ANOVA of the two factors, it can be noted that the $F_A$ (233.7) is higher than $F_B$ (62.3). From this, we can conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay than humudity. However, since an interaction effect was found between the two factors, this conclusion can not be made. Uitleggen waarom interactie effect hiervoor ze(Because of this, "which of the two factors has the greatest influence is" is not a good question.) (TODO: dit nog checken met college)
 
 **1e)** Check the model assumptions by using relevant diagnostic tools. Are there any outliers?
 Lastly, we check the model assumptions using relevant diagnostic tools. These assumptions consist of normality and equal variances of the residuals.
 ```{r}
-qqnorm(residuals(breadov))
-plot(fitted(breadov),residuals(breadov))
+# qqnorm(residuals(breadov))
+# plot(fitted(breadov),residuals(breadov))
+plot(breadov,2)
+plot(breadov,1)
 ```
-In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks relatively stable for all fitted values, which implies that there is no relationship between residuals and fitted values. Therefore, homogeneity of variance can be assumed. Nevertheless, some of the data points (marked with a red circle) look to be slightly extreme however. These may have a severely affect the normality of the data. We may consider these outliers and trim the data of these values.
+In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks relatively stable for all fitted values, which implies that there is no relationship between residuals and fitted values. Therefore, homogeneity of variance can be assumed. Nevertheless, some of the data points (marked with 7 and 8) look to be extreme however. These may have a severely affect the normality of the data. We may consider these outliers and trim the data of these values.
 
 # Exercise 3. Feedingstuffs for cows
 In a study on the effect of feedingstuffs on lactation, a sample of nine cows were fed food of two types, and their milk production was measured. All cows were fed both types of food, during two periods, with a neutral period in-between to try and wash out carry-over effects. The order of the types of food was randomized over the cows. The observed data can be found in the file cow.txt, where A and B refer to the types of feedingstuffs.
