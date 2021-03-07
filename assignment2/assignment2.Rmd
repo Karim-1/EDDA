@@ -296,6 +296,7 @@ employ-lawyers
 
 **b)** Fit a linear regression model to the data. Use both the step-up and the step-down method to find the best model. If step-up and step-down yield two different models, choose one and motivate your choice.
 
+
 **c)** Check the model assumptions by using relevant diagnostic tools.
 
 
