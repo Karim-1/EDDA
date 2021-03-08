@@ -153,14 +153,14 @@ cowlmer_reduced = lmer(milk~order+treatment+(1|id), REML=FALSE)
 (anova(cowlmer_reduced, cowlmer))
 ```
 
-When we check for the period effect we indeed find that the period has significant effect with a p=0.00439. The paired t-test is not valid for our data because the two orders (8 times AB and 10 times BA) are not equally distributed over the cows and the period of measuring has a significant effect as shown before, meaning that with the paired t-test not just includes the difference in milk production but also the significant period effect.
+When we check for the period effect we indeed find that the period has significant effect with a p=0.00439. The paired t-test is not valid for our data because the two orders (8 times AB and 10 times BA) are not equally distributed over the cows and the period of measuring has a significant effect as shown before, meaning that the paired t-test not just includes the difference in milk production but also the significant period effect.
 
 
 Although the p-values for the fixed model and the paired t-test are both non-significant, this conclusion is not compatible with the one obtained in a) because the paired t-test is the equivalent (gives the same p-value of 0.83) to the anova as shown below:
 ```{r}
 anova(lm(milk~treatment+id))
 ```
-which is not equal to the fixed model anova used in 3a which also includes the period.
+which is not equal to the fixed model anova used in 3a that also includes the period.
 
 
 
@@ -221,89 +221,60 @@ library(lme4)
 expenses = read.table("expensescrime.txt",header=TRUE)
 expenses$state=as.factor(expenses$state)
 attach(expenses)
-expenses
+# expenses
 ```
 
 **5a)** Make some graphical summaries of the data. Investigate the problem of potential and influence points, and the problem of collinearity.
 
+```{r}
+plot(expenses[,c(2,3, 4, 5, 6, 7)])
+```
+When looking at these scatter plots some 
+
+```{r}
+par(mfrow=c(2,3))
+for (i in 2:7) {
+  hist(expenses[,i], main=names(expenses)[i])
+}
+```
+
+
 problem of potential and influence points:
 ```{r}
-model_temp = lm(expend~bad+crime+lawyers+employ+pop)
-print("bad cook's distances:")
-round(cooks.distance(model_temp), 2)
-plot(expend, bad)
-plot(cooks.distance(model_temp),type="b", main="Cook's distances for bad")
-
-
-# model_temp = lm(expend~bad)
-# print("bad cook's distances:")
-# round(cooks.distance(model_temp), 2)
-# plot(expend, bad)
-# plot(cooks.distance(model_temp),type="b", main="Cook's distances for bad")
-#
-# model_temp = lm(expend~crime)
-# print("crime cook's distances:")
-# round(cooks.distance(model_temp), 2)
-# plot(expend, crime)
-# plot(cooks.distance(model_temp),type="b", main="Cook's distances for crime")
-# 
-# model_temp = lm(expend~lawyers)
-# print("lawyers cook's distances:")
-# round(cooks.distance(model_temp), 2)
-# plot(expend, lawyers)
-# plot(cooks.distance(model_temp),type="b", main="Cook's distances for lawyers")
-# 
-# model_temp = lm(expend~employ)
-# print("employ cook's distances:")
-# round(cooks.distance(model_temp), 2)
-# plot(expend, employ)
-# plot(cooks.distance(model_temp),type="b", main="Cook's distances for employ")
-# 
-# model_temp = lm(expend~pop)
-# print("pop cook's distances:")
-# round(cooks.distance(model_temp), 2)
-# plot(expend, pop)
-# plot(cooks.distance(model_temp),type="b", main="Cook's distances for pop")
+print("Cook's distances for lm(expend~bad+crime+lawyers+employ+pop):")
+round(cooks.distance(lm(expend~bad+crime+lawyers+employ+pop)), 2)
+plot(cooks.distance(lm(expend~bad+crime+lawyers+employ+pop)),type="b", main="Cook's distances for expend~bad+crime+lawyers+employ+pop")
 ```
-The following influence points are identified using the thumb's rule that identifies an influence point when Cook's distances > 0.95:
-- "Bad" datapoint-cook's_distance: 5-2.74, 44-8.55
-- "lawyers" datapoint-cook's_distance: 5-3.69
-- "employ" datapoint-cook's_distance: 5-7.00
-- "pop" datapoint-cook's_distance: 5-2.23, 35-1.76
+The following influence points are identified using the thumb's rule that identifies an influence point when Cook's distances is almost 1 or higher:
+* data point 5 with cook's distance: 4.91
+* data point 8 with cook's distance: 3.51
+* data point 35 with cook's distance: 1.09
+* data point 44 with cook's distance: 2.70
 
-The following explanatory variables have no influence points:
-- crime
-
-To reduce the plots in this report we only show bad as example, but similar plots are used to identify the other explanatory variables using the same method. The rows 5, 35 and 44 are removed from the dataset since those have influence points.
-
+These data points are removed from the data:
 ```{r message=FALSE, warning=FALSE}
-expenses = expenses[-c(5, 35, 44), ]
+expenses = expenses[-c(5, 8, 35, 44), ]
 attach(expenses)
 ```
 
 
----- MOETEN WE DIT HERLALEN TOT ER GEEN INFLUENCE POINTS MEER ZIJN OF IS EEN KEER GENOEG? ----
-We then repeat the process above to identify more influence points. lawyers point 7 and bad point 10 are identified as influence points and are thus removed from the dataset: 
-<!-- ```{r message=FALSE, warning=FALSE} -->
-<!-- expenses = expenses[-c(7, 10), ] -->
-<!-- attach(expenses) -->
-<!-- ``` -->
-and even more influence points emerge when re-analysing them...
+```{r}
+plot(expenses[,c(2,3, 4, 5, 6, 7)])
+```
 
+The removal of the influence points is clearly visible in the plot above compared to the same plot before the removal. For example, when looking at the expend-bad scatter plot, the outlying data points are removed, resulting in a better visible relation between the expand and bad variables.
 
 
 Problem of collinearity:
 ```{r}
-plot(expenses[,c(2, 3, 4, 5, 6, 7)])
 round(cor(expenses[,c(2, 3, 4, 5, 6, 7)]), 2)
 ```
-From the scatter plot and correlation values we can see that the following explanatory variables are likely to be collinear since those combinations have data points that show a linear relation and have a high correlation coefficient:
+From the scatter plot above and correlation values we can see that the following explanatory variables are likely to be collinear since those combinations have data points that show a linear relation and have a high correlation coefficient:
 pop-employ
 pop-lawyers
 pop-bad
 employ-bad
 employ-lawyers
-
 
 
 **b)** Fit a linear regression model to the data. Use both the step-up and the step-down method to find the best model. If step-up and step-down yield two different models, choose one and motivate your choice.
