@@ -1,10 +1,10 @@
 ---
-title: "assignment2"
+title: "Assignment 2 EDDA"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width=8, fig.height=6)
+knitr::opts_chunk$set(echo = TRUE, strip.white = TRUE)
 options(digits=3)
 ```
 
@@ -48,7 +48,7 @@ In the right plot, the distribution of data is plotted for the humidity conditio
 
 It should be noted that these boxplots only give us an idea of the main effects of the factors can be observed in the boxplot. Therefore interaction plots for both factors are added below.
 ```{r}
-layout(matrix(c(1,2,3,3), ncol=2, byrow=TRUE), heights=c(3, 1))
+layout(matrix(c(1,2,3,3), ncol=2, byrow=TRUE), heights=c(2, 1))
 interaction.plot(environment, humidity, hours)
 interaction.plot(humidity, environment, hours)
 ```
@@ -86,7 +86,7 @@ Based on the additive ANOVA model of the two factors, it can be noted that the $
 **1e)** 
 Lastly, we check the model assumptions using relevant diagnostic tools. These assumptions consist of normality and equal variances of the residuals.
 ```{r}
-par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.4,0.4,0.4,0))
 plot(breadov,2)
 plot(breadov,1)
 ```
@@ -147,6 +147,7 @@ This results in the estimation that it takes a user of skill level 3, 22.5 to fi
 
 **2c)** Then, we check the model assumptions by using relevant diagnostic tools.
 ```{r}
+par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
 plot(studentslm,2)
 plot(studentslm,1)
 ```
@@ -163,9 +164,7 @@ The Friedman test gives us a p-value of .04. This is smaller than the significan
 Lastly, we test the null hypothesis that the search time is the same for all interfaces with a one-way ANOVA test, ignoring the variable skill.
 ```{r}
 studentsaov = lm(time ~ interface, data=students)
-
 anova(studentsaov)
-# summary(studentsaov)
 ```
 The p-value > .05, therefore we would not reject $H_0$, meaning that we don't find a significant difference between interfaces. It may be incorrect to use a one-way ANOVA test, because the skill variable may not be spread equally (uniformly) across the population of people who would use the interfaces, meaning that it may not represent the society. Therefore, if only interface would be tested, a random (and preferable larger) sample should be taken from the population. 
 
@@ -228,7 +227,7 @@ These commands do not produce a valid test for a difference in milk production b
 ```{r}
 cowlmer = lmer(milk~order+treatment+per+(1|id))
 cowlmer_reduced = lmer(milk~order+treatment+(1|id), REML=FALSE)
-(anova(cowlmer_reduced, cowlmer))
+anova(cowlmer_reduced, cowlmer)
 ```
 
 When we check for the period effect we indeed find that the period has significant effect with a p=0.00439. The paired t-test is not valid for our data because the two orders (8 times AB and 10 times BA) are not equally distributed over the cows and the period of measuring has a significant effect as shown before, meaning that the paired t-test not just includes the difference in milk production but also the significant period effect.
@@ -303,14 +302,8 @@ attach(expenses)
 plot(expenses[,c(2,3, 4, 5, 6, 7)])
 ```
 When looking at these scatter plots some potential points are clearly visible. An example is the data point most right in the expand-bad scatter plot.
-```{r}
-par(mfrow=c(2,3))
-for (i in 2:7) {
-  hist(expenses[,i], main=names(expenses)[i])
-}
-```
 
-problem of influence points:
+Problem of influence points:
 ```{r}
 print("Cook's distances for lm(expend~bad+crime+lawyers+employ+pop):")
 round(cooks.distance(lm(expend~bad+crime+lawyers+employ+pop)), 2)
@@ -359,6 +352,7 @@ for (i in 1:length(factors)) {
 print("R^2 values for addition of first variable:"); factors; R2
 factor_one = factors[which.max(R2)]
 print(paste0("Factor with highest R^2 value: ", factor_one))
+
 # remove chosen first factor from list
 factors = factors[-which.max(R2)]
 
@@ -413,13 +407,6 @@ plot(residuals(stepuplm), employ, main="Scatter plot against employ")
 x = residuals(lm(employ~bad+crime+lawyers+pop))
 y = residuals(lm(expend~bad+crime+lawyers+pop))
 plot(x,y,main="Added variable plot for + Employ", xlab="residual of Employ", ylab="residual of Expend")
-
-# 4
-# par(mfrow=c(2,2))
-# plot(residuals(stepuplm), bad, main="Scatter plot against bad")
-# plot(residuals(stepuplm), crime, main="Scatter plot against crime")
-# plot(residuals(stepuplm), lawyers, main="Scatter plot against lawyers")
-# plot(residuals(stepuplm), pop, main="Scatter plot against pop")
 
 # 5
 par(mfrow=c(2,2))
