@@ -18,8 +18,9 @@ For all exercises, an $\alpha$ significance level of .05 is used, unless stated 
 
 
 ### Exercise 1: Moldy bread
-If left alone bread will become moldy, rot or decay otherwise. To investigate the influence of temperature and humidity on this process, the time to decay was measured for 18 slices of white bread, which were placed in 3 different environments and humidified or not. The data are given in the file bread.txt, with the first column time to decay in hours, the second column the environment (cold, warm or intermediate temperature) and the third column the humidity.
-**1a)** The 18 slices came from a single loaf, but were randomized to the 6 combinations of conditions. Present an R-code for this randomization process.
+
+**1a)** 
+Firstly the bread.txt file is loaded in.
 
 ```{r}
 bread = read.table("bread.txt",header=TRUE)
@@ -30,9 +31,9 @@ The randomization process of the data is done as followed:
 I=3; J=2; N=3
 rbind(rep(1:I,each=N*J),rep(1:J,N*I),sample(1:(N*I*J)))
 ```
-Here you can see the random want blabla (explain which axis are which)
+Here, you can see that all the participants (in this case, slices of bread) are assigned a random condition. In the table above, the first row contains the environment (1 = cold, 2 = intermediate, 3 = warm), the second row contains the humidity (1 = dry, 2 = wet) and the third row contains the participant ID's (the specific slice of bread). The last row is thus randomized across the different conditions.
 
-**1b)** Make two boxplots of hours versus the two factors and two interaction plots (keeping the two factors fixed in turn).
+**1b)** 
 Next, we create two boxplots of the hours to decay in relation to the two factors.
 
 ```{r message=FALSE, warning=FALSE}
@@ -41,17 +42,20 @@ par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
 boxplot(hours~environment)
 boxplot(hours~humidity)
 ```
-TODO: interpretatie
+In the left boxplot we observe the distribution of the dependent variable (hours to decay) for the three environment conditions. Here, it can be observed that the median for the intermediate and warm environment is similar. The median for the bread in the cold environment however is higher than the other two conditions. This probably implies that placing bread in a cold environment will take longer to become moldy. 
 
-We also create the interaction plots for both factors, which can be observed below.
+In the right plot, the distribution of data is plotted for the humidity condition. Here, it can be seen that the median for the hours to decay is lower for wet humidity than for dry humidity. Moreover, a larger spread in data is observed for the wet environment than for the dry environment. 
+
+It should be noted that these boxplots only give us an idea of the main effects of the factors can be observed in the boxplot. Therefore interaction plots for both factors are added below.
 ```{r}
-layout(matrix(c(1,2,3,3), ncol=2, byrow=TRUE), heights=c(4, 1))
+layout(matrix(c(1,2,3,3), ncol=2, byrow=TRUE), heights=c(3, 1))
 interaction.plot(environment, humidity, hours)
 interaction.plot(humidity, environment, hours)
 ```
-TODO: interpretatie
+In the plots it can be noted that the lines are not parallel. This may imply an interaction effect. However, noise might also be the cause of dissimilarities in the line slopes. To further investigate the significance of interaction between factors, a two way ANOVA is appropriate.
 
-**1c)** Perform an analysis of variance to test for effect of the factors temperature, humidity, and their interaction. Describe the interaction effect in words.
+**1c)** 
+A two way ANOVA is performed to test the effect of the factors and their interaction.
 
 We define the alternative hypothesis as followed:
 - There is an effect of environment's temperature on the decay of bread ($H_A$)
@@ -84,10 +88,10 @@ plot(breadov,1)
 ```
 In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks relatively stable for all fitted values, which implies that there is no relationship between residuals and fitted values. Therefore, homogeneity of variance can be assumed. Nevertheless, some of the data points (marked with 7 and 8) look to be extreme however. These may have a severely affect the normality of the data. We may consider these outliers and trim the data of these values.
 
-# Exercise 3. Feedingstuffs for cows
+### Exercise 3. Feedingstuffs for cows
 In a study on the effect of feedingstuffs on lactation, a sample of nine cows were fed food of two types, and their milk production was measured. All cows were fed both types of food, during two periods, with a neutral period in-between to try and wash out carry-over effects. The order of the types of food was randomized over the cows. The observed data can be found in the file cow.txt, where A and B refer to the types of feedingstuffs.
 
-**a)** Test whether the type of feedingstuffs influences milk production using an ordinary “fixed effects” model, fitted with lm. Estimate the difference in milk production.
+**3a)** Test whether the type of feedingstuffs influences milk production using an ordinary “fixed effects” model, fitted with lm. Estimate the difference in milk production.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(lme4)
@@ -120,7 +124,7 @@ plot(lm(milk~id+per+treatment), 2)
 ```
 This plot does show a relationship between the fitted values and the residuals as the data does not follow the dotted line, allowing us to conclude that the assumption for equality of variances is not met. In addition to this, the assumption for normality is also not met as the data in the normal Q-Q plot does not follow the dotted line.
 
-**b)** Repeat a) by performing a mixed effects analysis, modeling the cow effect as a random effect (use the function lmer). Compare your results to the results found by using a fixed effects model. (You will need to install the R-package lme4, which is not included in the standard distribution of R.)
+**3b)** Repeat a) by performing a mixed effects analysis, modeling the cow effect as a random effect (use the function lmer). Compare your results to the results found by using a fixed effects model. (You will need to install the R-package lme4, which is not included in the standard distribution of R.)
 
 
 ```{r}
@@ -131,7 +135,7 @@ cowlmer_reduced = lmer(milk~order+per+(1|id), REML=FALSE)
 In the mixed effects model the p value of 0.446 is lower than the fixed effects model but still not significant. This could have something to do with an interaction effect.
 
 
-**c)** Study the commands:
+**3c)** Study the commands:
 - attach(cow)
 - t.test(milk[treatment=="A"],milk[treatment=="B"],paired=TRUE)
 Does this produce a valid test for a difference in milk production? Is its conclusion compatible with the one obtained in a)? Why?
