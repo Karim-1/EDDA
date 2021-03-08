@@ -170,8 +170,6 @@ anova(studentsaov)
 The p-value > .05, therefore we would not reject $H_0$, meaning that we don't find a significant difference between interfaces. It may be incorrect to use a one-way ANOVA test, because the skill variable may not be spread equally (uniformly) across the population of people who would use the interfaces, meaning that it may not represent the society. Therefore, if only interface would be tested, a random (and preferable larger) sample should be taken from the population. 
 
 ### Exercise 3. Feedingstuffs for cows
-In a study on the effect of feedingstuffs on lactation, a sample of nine cows were fed food of two types, and their milk production was measured. All cows were fed both types of food, during two periods, with a neutral period in-between to try and wash out carry-over effects. The order of the types of food was randomized over the cows. The observed data can be found in the file cow.txt, where A and B refer to the types of feedingstuffs.
-
 **3a)** We first test whether the type of feedingstuffs influences milk production using an ordinary “fixed effects” model, fitted with lm. To do this, we first read in the data and define the different factors.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -190,7 +188,7 @@ Then, an ANOVA is performed for the different factors.
 ```{r}
 anova(lm(milk~id+per+treatment))
 ```
-From this model we can't conclude that feedingstuffs A and B have an effect on milk production with the fixed effect model since the corresponding ANOVA p-value is 0.51654.
+From this model we can't conclude that feedingstuffs A and B have an effect on milk production with the fixed effect model since the corresponding ANOVA p-value is 0.517.
 
 ```{r}
 summary((lm(milk~id+per+treatment)))
@@ -206,9 +204,7 @@ plot(lm(milk~id+per+treatment), 2)
 ```
 This plot does show a relationship between the fitted values and the residuals as the data does not follow the dotted line, allowing us to conclude that the assumption for equality of variances is not met. In addition to this, the assumption for normality is also not met as the data in the normal Q-Q plot does not follow the dotted line.
 
-**3b)** Repeat a) by performing a mixed effects analysis, modeling the cow effect as a random effect (use the function lmer). Compare your results to the results found by using a fixed effects model. (You will need to install the R-package lme4, which is not included in the standard distribution of R.)
-
-
+**3b)** We repeat a) by performing a mixed effects analysis, modeling the cow effect as a random effect (use the function lmer). We compare our results to the results found by using a fixed effects model.
 ```{r}
 cowlmer = lmer(milk~order+per+treatment+(1|id))
 cowlmer_reduced = lmer(milk~order+per+(1|id), REML=FALSE)
@@ -217,7 +213,7 @@ cowlmer_reduced = lmer(milk~order+per+(1|id), REML=FALSE)
 In the mixed effects model the p value of 0.446 is lower than the fixed effects model but still not significant. This could have something to do with an interaction effect.
 
 
-**3c)** Study the commands:
+**3c)** We study the commands:
 - attach(cow)
 - t.test(milk[treatment=="A"],milk[treatment=="B"],paired=TRUE)
 Does this produce a valid test for a difference in milk production? Is its conclusion compatible with the one obtained in a)? Why?
