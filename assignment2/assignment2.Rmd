@@ -289,8 +289,6 @@ From the table we can gather that these differences lay;
 
 
 ### Exercise 5:
-The data in expensescrime.txt were obtained to determine factors related to state expenditures on criminal activities (courts, police, etc.) The variables are: state (indicating the state in the USA), expend (state expenditures on criminal activities in $1000), bad (crime rate per 100000), crime (number of persons under criminal supervision), lawyers (number of lawyers in the state), employ (number of persons employed in the state) and pop (population of the state in 1000). In the regression analysis, take expend as response variable and bad, crime, lawyers, employ and pop as explanatory variables.
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(lme4)
 expenses = read.table("expensescrime.txt",header=TRUE)
@@ -298,17 +296,11 @@ expenses$state=as.factor(expenses$state)
 attach(expenses)
 ```
 
-**5a)** Make some graphical summaries of the data. Investigate the problem of potential and influence points, and the problem of collinearity.
+**5a)** We make some graphical summaries of the data whereafter we investigate the problem of potential and influence points, and the problem of collinearity.
 ```{r}
 plot(expenses[,c(2,3, 4, 5, 6, 7)])
 ```
 When looking at these scatter plots some potential points are clearly visible. An example is the data point most right in the expand-bad scatter plot.
-```{r}
-par(mfrow=c(2,3))
-for (i in 2:7) {
-  hist(expenses[,i], main=names(expenses)[i])
-}
-```
 
 problem of influence points:
 ```{r}
@@ -328,22 +320,11 @@ expenses = expenses[-c(5, 8, 35, 44), ]
 attach(expenses)
 ```
 
-```{r}
-plot(expenses[,c(2,3, 4, 5, 6, 7)])
-```
-The removal of the influence points is clearly visible in the plot above compared to the same plot before the removal. For example, when looking at the expend-bad scatter plot, the outlying data points are removed, resulting in a better visible relation between the expand and bad variables.
-
-
 Problem of collinearity:
 ```{r}
 round(cor(expenses[,c(2, 3, 4, 5, 6, 7)]), 2)
 ```
-From the scatter plot above and correlation values we can see that the following explanatory variables are likely to be collinear since those combinations have data points that show a linear relation and have a high correlation coefficient:
-pop-employ
-pop-lawyers
-pop-bad
-employ-bad
-employ-lawyers
+From the scatter plot above and correlation values we can see that the following explanatory variables are likely to be collinear since those combinations have data points that show a linear relation and have a high correlation coefficient: pop-employ, pop-lawyers, pop-bad, employ-bad, employ-lawyers
 
 **5b)**
 step-up method
@@ -413,13 +394,6 @@ plot(residuals(stepuplm), employ, main="Scatter plot against employ")
 x = residuals(lm(employ~bad+crime+lawyers+pop))
 y = residuals(lm(expend~bad+crime+lawyers+pop))
 plot(x,y,main="Added variable plot for + Employ", xlab="residual of Employ", ylab="residual of Expend")
-
-# 4
-# par(mfrow=c(2,2))
-# plot(residuals(stepuplm), bad, main="Scatter plot against bad")
-# plot(residuals(stepuplm), crime, main="Scatter plot against crime")
-# plot(residuals(stepuplm), lawyers, main="Scatter plot against lawyers")
-# plot(residuals(stepuplm), pop, main="Scatter plot against pop")
 
 # 5
 par(mfrow=c(2,2))
