@@ -30,7 +30,7 @@ The randomization process of the data is done as followed:
 I=3; J=2; N=3
 rbind(rep(1:I,each=N*J),rep(1:J,N*I),sample(1:(N*I*J)))
 ```
-Here you can see the random want blabla (explain which axis are which)
+
 
 **1b)** Make two boxplots of hours versus the two factors and two interaction plots (keeping the two factors fixed in turn).
 Next, we create two boxplots of the hours to decay in relation to the two factors.
@@ -66,28 +66,26 @@ bread$humidity=as.factor(bread$humidity)
 breadov=lm(hours~environment*humidity)
 anova(breadov)
 ```
-The p-value for both $H_0$ with factors $A_i=0$ and $B_j =0$ (TODO, dit iets anders schrijven) for all $i$ is <0.001, which is lower than our significance value \alpha (.05). From this, we can conclude the the variation between different environments is much larger than within environments. The same can be concluded for humidity; the variation between a dry and wet environment is higher than within those two environments. Therefore, a main effect is found for both variables and we may accept the alternative hypothesis that there is a significant relationship between a bread's environment and its decay, as well as between the humidity and decay of bread (within our confidence interval).
+The p-value for both $H_0$ with factors $A_i =0$ and $B_j =0$ for all $i$ is <0.001. From this, we can conclude the the variation within different environments is much larger than within environments. The same can be concluded for humidity; the variation between a dry and wet environment is higher than within those two environments. Therfore a main effect is found for both variables and we may accept the alternative hypothesis that there is a significant relationship between a bread's environment and its decay, as well as between the humidity and decay of bread (within our confidence interval).
 
-The p-value for the interaction effect between the factors $H0 :\gamma_{i,j} =0$ too is <0.001. From this, we may accept the alternative hypothesis that there is a interaction effect between the environment's temperature and humidity on the decay of the bread. This confirms our findings in the interaction plot in 1c), where we observed that the lines are not parallel to each other. TODO: interpretatie. 
+The p-value for the interaction effect between the factors $H0 :\gamma_{i,j} =0$ too is <0.001. From this, we may accept the alternative hypothesis that there is a interaction effect between the environment's temperature and humidity on the decay of the bread.
 
 **1d)** Which of the two factors has the greatest (numerical) influence on the decay? Is this a good question?
 
-Based on the ANOVA of the two factors, it can be noted that the $F_A$ (233.7) is higher than $F_B$ (62.3). From this, we can conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay than humudity. However, since an interaction effect was found between the two factors, this conclusion can not be made. Uitleggen waarom interactie effect hiervoor ze(Because of this, "which of the two factors has the greatest influence is" is not a good question.) (TODO: dit nog checken met college)
+Based on the ANOVA of the two factors, it can be noted that the $F_A$ (233.7) is higher than $F_B$ (62.3). From this, we can conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay. However, since an interaction effect was found between the two factors, this conclusion can not be made. (Because of this, "which of the two factors has the greatest influence is" is not a good question.) (TODO: dit nog checken met college)
 
 **1e)** Check the model assumptions by using relevant diagnostic tools. Are there any outliers?
 Lastly, we check the model assumptions using relevant diagnostic tools. These assumptions consist of normality and equal variances of the residuals.
 ```{r}
-# qqnorm(residuals(breadov))
-# plot(fitted(breadov),residuals(breadov))
-plot(breadov,2)
-plot(breadov,1)
+qqnorm(residuals(breadov))
+plot(fitted(breadov),residuals(breadov))
 ```
-In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks relatively stable for all fitted values, which implies that there is no relationship between residuals and fitted values. Therefore, homogeneity of variance can be assumed. Nevertheless, some of the data points (marked with 7 and 8) look to be extreme however. These may have a severely affect the normality of the data. We may consider these outliers and trim the data of these values.
+In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks relatively stable for all fitted values, which implies that there is no relationship between residuals and fitted values. Therefore, homogeneity of variance can be assumed. Nevertheless, some of the data points (marked with a red circle) look to be slightly extreme however. These may have a severely affect the normality of the data. We may consider these outliers and trim the data of these values.
 
 # Exercise 3. Feedingstuffs for cows
 In a study on the effect of feedingstuffs on lactation, a sample of nine cows were fed food of two types, and their milk production was measured. All cows were fed both types of food, during two periods, with a neutral period in-between to try and wash out carry-over effects. The order of the types of food was randomized over the cows. The observed data can be found in the file cow.txt, where A and B refer to the types of feedingstuffs.
 
-**a)** Test whether the type of feedingstuffs influences milk production using an ordinary “fixed effects” model, fitted with lm. Estimate the difference in milk production.
+a) Test whether the type of feedingstuffs influences milk production using an ordinary “fixed effects” model, fitted with lm. Estimate the difference in milk production.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(lme4)
@@ -110,7 +108,7 @@ From this model we can't conclude that feedingstuffs A and B have an effect on m
 ```{r}
 summary((lm(milk~id+per+treatment)))
 ```
-In the given data Feedingstuff B is estimated to give 0.510 times less milk than feedingstuff A (that has an estimate of 30.30 milk production).
+In the given data Feedingstuff B is estimated to give 0.510 less milk than feedingstuff A.
 
 
 Check assumptions:
@@ -120,7 +118,10 @@ plot(lm(milk~id+per+treatment), 2)
 ```
 This plot does show a relationship between the fitted values and the residuals as the data does not follow the dotted line, allowing us to conclude that the assumption for equality of variances is not met. In addition to this, the assumption for normality is also not met as the data in the normal Q-Q plot does not follow the dotted line.
 
-**b)** Repeat a) by performing a mixed effects analysis, modeling the cow effect as a random effect (use the function lmer). Compare your results to the results found by using a fixed effects model. (You will need to install the R-package lme4, which is not included in the standard distribution of R.)
+
+
+
+b) Repeat a) by performing a mixed effects analysis, modeling the cow effect as a random effect (use the function lmer). Compare your results to the results found by using a fixed effects model. (You will need to install the R-package lme4, which is not included in the standard distribution of R.)
 
 
 ```{r}
@@ -128,17 +129,20 @@ cowlmer = lmer(milk~order+per+treatment+(1|id))
 cowlmer_reduced = lmer(milk~order+per+(1|id), REML=FALSE)
 (anova(cowlmer_reduced, cowlmer))
 ```
-In the mixed effects model the p value of 0.446 is lower than the fixed effects model but still not significant. This could have something to do with an interaction effect.
+In the mixed effects model the p value of 0.446 is lower than the fixed effects model but still not significant.
 
 
-**c)** Study the commands:
+c) Study the commands:
 - attach(cow)
 - t.test(milk[treatment=="A"],milk[treatment=="B"],paired=TRUE)
 Does this produce a valid test for a difference in milk production? Is its conclusion compatible with the one obtained in a)? Why?
 
+
 ```{r}
-t.test(milk[treatment=="A"],milk[treatment=="B"], paired=TRUE)
+t.test(milk[treatment=="A"],milk[treatment=="B"],paired=TRUE)
 ```
+
+
 
 These commands do not produce a valid test for a difference in milk production because the assumptions for the t-test are not checked in these two commands. In addition to this, due to the possibility of interaction effects the paired t-test should not be used but rather the mixed effects ANOVA, which takes these into account.
 
@@ -161,13 +165,10 @@ which is not equal to the fixed model anova used in 3a that also includes the pe
 
 
 
-
-
 ### Exercise 4: Jane Austen
 Stochastic models for word counts are used in quantitative studies on literary styles. Statistical analysis of the counts can, for example, be used to solve controversies about true authorships. Another example is the analysis of word frequencies in relation to Jane Austen’s novel Sanditon. At the time Austen died, this novel was only partly completed. Austen, however, had made a summary for the remaining part. An admirer of Austen’s work finished the novel, imitating Austen’s style as much as possible. The file austen.txt contains counts of different words in some of Austen’s novels: chapters 1 and 3 of Sense and Sensibility (stored in the Sense column), chapters 1, 2 and 3 of Emma (column Emma), chapters 1 and 6 of Sanditon (both written by Austen herself, column Sand1) and chapters 12 and 24 of Sanditon (both written by the admirer, Sand2).
 **4a)** Discuss whether a contingency table test for independence or for homogeneity is most appropriate here.
-
-In order to analyze the word count of the chapters of the finished novel, we look to see whether the word count in the chapter written by her admirer are consistent with the word count written by Jane Austen's herself. We therefore test the null hypothesis that the proportion of word counts are consistent between Austin's original work and the finished work by her admirer. Because of this, a contingency table for homogeneity is appropriate. With a contigency table for homogeinity we can check whether the distribution of word counts are equal between the original work of Austen (Sense, Emma, Sand1) and her admirer (Sand2).
+In order to analyze the word count of the chapters of the finished novel, we look to see whether the word count in the chapter written by her admirer are consistent with the word count written by Jane Austen's herself. We therefore look to see whether the proportion of word counts are consistent Austin's original work and the finished work by her admirer. Because of this, a contingency table for homogeneity is appropriate, to check whether the distribution of word counts are equal between the original work of Austen (Sense, Emma, Sand1) and her admirer (Sand2).
 
 **4b)** Using the given data set, investigate whether Austen herself was consistent in her different novels.
 Where are the main inconsistencies?
@@ -177,11 +178,10 @@ To investigate whether Austen's work was consistent in her different novels, we 
 ```{r}
 wordcounts = read.table("austen.txt", header=TRUE)
 austen = subset(wordcounts, select = c('Sense', 'Emma', 'Sand1'))
-austen
 z=chisq.test(austen)
 z
 ```
-The p-value is .3. Based on this, we will not reject the null hypothesis that the proportion of word counts differs significantly between Austen's book chapters. This is to be expected, as these chapters are all written by the same author. To consider inconsistencies in the rows and columns, we observe the residuals of the cells (the square root contribution of each cell to the chi-square statistic.) These values give an indication of how much cell values differ from the expected values under $H_0$.
+The p-value is .3. From this we can conclude that the word counts for each combination of word and book chapters are not independent of each other. This is to be expected, as these chapters are all written by the same Author. To consider inconsistencies in the rows and columns, we observe the residuals of the cells (the square root contribution of each cell to the chi-square statistic.) These values give an indication of how much cell values differ from the expected values under $H_0$.
 
 ```{r}
 z$residuals
@@ -200,7 +200,7 @@ Next, we check whether the admirer successful in imitating Austen’s style. We 
 z1=chisq.test(wordcounts)
 z1
 ```
-The p-value is now smaller than .001. Based on this we will reject the null hypothesis. This implies that after adding back the Sand2 column, we can assume that the proportion of word counts are not equal between cells. We can investigate where these differences lay if we once again investigate the contribution of each to the chi-square test statistic with the residuals.
+The p-value is now smaller than .001, meaning that after adding back the Sand2 column, the word counts may be considered independent on each other. We can investigate where these differences lay if we once again investigate the contribution of each to the chi-square test statistic with the residuals.
 
 ```{r}
 z1$residuals
@@ -221,8 +221,9 @@ library(lme4)
 expenses = read.table("expensescrime.txt",header=TRUE)
 expenses$state=as.factor(expenses$state)
 attach(expenses)
-expenses
+# expenses
 ```
+
 **5a)** Make some graphical summaries of the data. Investigate the problem of potential and influence points, and the problem of collinearity.
 
 ```{r}
@@ -260,6 +261,7 @@ attach(expenses)
 ```{r}
 plot(expenses[,c(2,3, 4, 5, 6, 7)])
 ```
+
 The removal of the influence points is clearly visible in the plot above compared to the same plot before the removal. For example, when looking at the expend-bad scatter plot, the outlying data points are removed, resulting in a better visible relation between the expand and bad variables.
 
 
@@ -275,112 +277,10 @@ employ-bad
 employ-lawyers
 
 
-**5b**
-step up
-```{r}
-factors = colnames(expenses)[3:length(colnames(expenses))]
+**b)** Fit a linear regression model to the data. Use both the step-up and the step-down method to find the best model. If step-up and step-down yield two different models, choose one and motivate your choice.
 
-# 1st factor
-R2 = numeric(length(factors))
+**c)** Check the model assumptions by using relevant diagnostic tools.
 
-for (i in 1:length(factors)) {
-  R2[i] = summary(lm(paste('expend',  '~', factors[i]), data=expenses))[[8]]
-}
-
-print("R^2 values for addition of first variable:"); factors; R2
-factor_one = factors[which.max(R2)]
-print(paste0("Factor with highest R^2 value: ", factor_one))
-
-# remove chosen first factor from list
-factors = factors[-which.max(R2)]
-
-# 2nd factor
-R2 = numeric(length(factors))
-for (i in 1:length(factors)) {
-  R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factors[i]), data=expenses))[[8]]
-}
-
-print("R^2 values for addition of second variable:"); factors; R2
-factor_two = factors[which.max(R2)]
-print(paste0("Factor with highest R^2 value: ", factor_two))
-
-summary(lm(expend~employ), data=expenses)
-
-```
-The step up method resulted in a model which used only the variable employ and a R^2 value of 0.956. The addition of a second parameter, as shown above, would only increase the R^2 value to a maximum of 0.965. However, this small increase is not worth the addition of another variable and thus the final model used one variable. This resulted in:
-expend = 23.242 + 0.037 * employ + error
-with an R^2 value of 0.956
-
-step-down
-```{r echo=FALSE}
-# start with all variables
-summary(lm(expend~bad+crime+lawyers+employ+pop, data=expenses))[4]
-print("Crime has highest p-value of 9.86e-1, thus remove crime as variable")
-
-summary(lm(expend~bad+lawyers+employ+pop, data=expenses))[4]
-print("Pop has highest p-value of 0.270, thus remove pop as variable")
-
-summary(lm(expend~bad+lawyers+employ, data=expenses))
-print("Bad has highest p-value of 0.045, which is below 0.05")
-```
-All of the three left over variables, bad, lawyers and employ are smaller than 0.05, thus final model keeps these three factors. This results in:
-expend = 16.5877 + 2.001 * bad + 0.020 * lawyers + 0.020 * employ + error
-with a R^2 value of 0.965.
-
-The step up method resulted in the model that only uses one variable, employ. This resulted in the following model:
-expend = 23.242 + 0.037 * employ + error
-with an R^2 value of 0.956.
-
-We prefer the model of the step up method, because it uses two more variables instead of two for a slightly lower R^2 value.
-
-**5c**
-Check model assumptions by using relevant diagnostic tools.
-(lecture 8, diagnostics in linear regression)
-
-To check the model quality look at 
-1. scatter plot: plot Y against each Xk separately (this yields overall picture, and shows outlying values)
-2. scatter plot: plot residuals against each Xk in the model separately (look at pattern (curved?) and spread)
-
-3. added variable plot (partial regression plot, see Velleman and Welsch (1981)): plot residuals of Xj against residuals of Y with omitted Xj (to show the effect of adding Xj to the model.) (Or, to show the relationship between Y and Xj , once all other predictors have been accounted for.)
-4. scatter plot: plot residuals against each Xk not in the model separately (look at pattern — linear? then include!)
-5. scatter plot: plot residuals against Y and ˆY (look at spread) 
-6. normal QQ-plot of the residuals (check normality assumption)
-Eduard
-
-The model assumptions will be checked for the model that resulted from the step up method.
-```{r warning=FALSE}
-attach(expenses)
-stepuplm = lm(expend~employ)
-
-# 2
-par(mfrow=c(2,2))
-plot(residuals(stepuplm), employ, main="Scatter plot against employ")
-
-# 3
-x = residuals(lm(employ~bad+crime+lawyers+pop))
-y = residuals(lm(expend~bad+crime+lawyers+pop))
-plot(x,y,main="Added variable plot for + Employ", xlab="residual of Employ", ylab="residual of Expend")
-
-# 4
-par(mfrow=c(2,2))
-plot(residuals(stepuplm), bad, main="Scatter plot against bad")
-plot(residuals(stepuplm), crime, main="Scatter plot against crime")
-plot(residuals(stepuplm), lawyers, main="Scatter plot against lawyers")
-plot(residuals(stepuplm), pop, main="Scatter plot against pop")
-# NIKS LINEAR DUS KAN WEG?
-
-# 5
-plot(residuals(stepuplm), expend)
-plot(residuals(stepuplm),fitted(stepuplm))
-
-# 6
-qqnorm(residuals(stepuplm))
-# slide 21
-shapiro.test(residuals(stepuplm))
-```
-point 4, checked for linear patterns. No pattern found and thus plots not included.
-After removal of the outliers, the qq-plot shows a linear line.
-Shapiro-Wilk test results in a p-value of 0.03.
 
 
 
