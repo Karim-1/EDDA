@@ -121,6 +121,7 @@ boxplot(time~interface)
 boxplot(time~skill)
 studentslm = lm(time~interface+skill)
 anova(studentslm)
+# summary(anova(studentslm))
 ```
 p value for interface:skill is 0.340. So there is no evidence for interaction. 
 
