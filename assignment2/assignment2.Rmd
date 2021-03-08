@@ -93,6 +93,83 @@ plot(breadov,1)
 ```
 In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks relatively stable for all fitted values, which implies that there is no relationship between residuals and fitted values. Therefore, homogeneity of variance can be assumed. Nevertheless, some of the data points (marked with 7 and 8) look to be extreme however. These may have a severely affect the normality of the data. We may consider these outliers and trim the data of these values.
 
+### Exercise 2: Search engine
+```{r}
+students = read.table("search.txt",header=TRUE)
+students
+```
+
+**2a)** randomised block design
+```{r echo=FALSE}
+I = 3
+B = 5
+N = 1
+for (b in 1:B) {
+  print(sample(1:(N*I)))
+}
+```
+The 5 different blocks (rows) show how the experiment could be conducted by using the randomized block design. Each block is one of the 5 skill levels and it tells us how the 3 students of the skill level should be divided over the 3 interfaces. For example, for block (skill level) 1 it assigns student 2 to interface 3, student 3 to interface 1 and student 1 to interface 2.
+
+**2b)** Test the null hypothesis that the search time is the same for all interfaces. 
+```{r message=FALSE, warning=FALSE}
+students$interface = as.factor(students$interface)
+students$skill = as.factor(students$skill)
+attach(students)
+
+par(mfrow=c(1,2))
+boxplot(time~interface)
+boxplot(time~skill)
+studentslm = lm(time~interface+skill)
+anova(studentslm)
+```
+p value for interface:skill is 0.340. So there is no evidence for interaction. 
+
+What type of interface requires the longest search time?
+```{r}
+inter1 = mean(students$time[interface==1])
+inter2 = mean(students$time[interface==2])
+inter3 = mean(students$time[interface==3])
+which.max(c(inter1, inter2, inter3))
+```
+interface 3 has the highest mean search time.
+
+Which combination of skill and interface is search time shortest
+```{r}
+students[which.min(students$time),]
+```
+The combination of skill and interface that leads to the shortest search time is: Skill level = 2 and interface = 1.
+
+```{r}
+summary(studentslm)
+```
+The estimation of time it takes a typical user of skill level 3 to find the product on the website if the website uses interface 3 will be based on the summary above. This results in the following formula:
+time = 15.01 + 4.46 + 3.03
+This results in the estimation that it takes a user of skill level 3, 22.5 to find a product on the website when using interface 3.
+
+**2c)** check the model assumptions by using relevant diagnostic tools
+```{r}
+qqnorm(residuals(studentslm))
+plot(fitted(studentslm),residuals(studentslm))
+```
+The Q-Q plot seems fairly normal. This combined with the residuls, which are normally distributed
+
+**2d)** Perform the Friedman test to test whether ther is an effect of interface
+```{r}
+interaction.plot(students$interface, students$skill, students$time)
+friedman.test(time,interface,skill,data=students)
+```
+The Friedman test gives us a p-value of 0.04. This is smaller than 0.05 and thus we reject the H0 hypothesis. This mean that the interface has an effect on the search time.
+
+**2e)**
+```{r}
+studentsaov = lm(time ~ interface, data=students)
+plot(studentsaov,1)
+
+anova(studentsaov)
+summary(studentsaov)
+```
+p-value < 0.05 thus we reject H0. There is a significant difference between interfaces. It is not wrong to use a one-way ANOVA test because the skill variable is also how it is (uniformly) spread over the population of people who would use the interfaces, meaning that it represents the society. This makes it so that only testing for interface is also viable.
+
 ### Exercise 3. Feedingstuffs for cows
 In a study on the effect of feedingstuffs on lactation, a sample of nine cows were fed food of two types, and their milk production was measured. All cows were fed both types of food, during two periods, with a neutral period in-between to try and wash out carry-over effects. The order of the types of food was randomized over the cows. The observed data can be found in the file cow.txt, where A and B refer to the types of feedingstuffs.
 
@@ -167,13 +244,7 @@ anova(lm(milk~treatment+id))
 ```
 which is not equal to the fixed model anova used in 3a that also includes the period.
 
-
-
-
-
-
 ### Exercise 4: Jane Austen
-Stochastic models for word counts are used in quantitative studies on literary styles. Statistical analysis of the counts can, for example, be used to solve controversies about true authorships. Another example is the analysis of word frequencies in relation to Jane Austen’s novel Sanditon. At the time Austen died, this novel was only partly completed. Austen, however, had made a summary for the remaining part. An admirer of Austen’s work finished the novel, imitating Austen’s style as much as possible. The file austen.txt contains counts of different words in some of Austen’s novels: chapters 1 and 3 of Sense and Sensibility (stored in the Sense column), chapters 1, 2 and 3 of Emma (column Emma), chapters 1 and 6 of Sanditon (both written by Austen herself, column Sand1) and chapters 12 and 24 of Sanditon (both written by the admirer, Sand2).
 **4a)** Discuss whether a contingency table test for independence or for homogeneity is most appropriate here.
 
 In order to analyze the word count of the chapters of the finished novel, we look to see whether the word count in the chapter written by her admirer are consistent with the word count written by Jane Austen's herself. We therefore test the null hypothesis that the proportion of word counts are consistent between Austin's original work and the finished work by her admirer. Because of this, a contingency table for homogeneity is appropriate. With a contigency table for homogeinity we can check whether the distribution of word counts are equal between the original work of Austen (Sense, Emma, Sand1) and her admirer (Sand2).
@@ -232,20 +303,18 @@ expenses$state=as.factor(expenses$state)
 attach(expenses)
 expenses
 ```
-**5a)** Make some graphical summaries of the data. Investigate the problem of potential and influence points, and the problem of collinearity.
 
+**5a)** Make some graphical summaries of the data. Investigate the problem of potential and influence points, and the problem of collinearity.
 ```{r}
 plot(expenses[,c(2,3, 4, 5, 6, 7)])
 ```
-When looking at these scatter plots some 
-
+When looking at these scatter plots some
 ```{r}
 par(mfrow=c(2,3))
 for (i in 2:7) {
   hist(expenses[,i], main=names(expenses)[i])
 }
 ```
-
 
 problem of potential and influence points:
 ```{r}
@@ -265,7 +334,6 @@ expenses = expenses[-c(5, 8, 35, 44), ]
 attach(expenses)
 ```
 
-
 ```{r}
 plot(expenses[,c(2,3, 4, 5, 6, 7)])
 ```
@@ -283,23 +351,89 @@ pop-bad
 employ-bad
 employ-lawyers
 
+**5b)**
+step-up method
+```{r}
+factors = colnames(expenses)[3:length(colnames(expenses))]
 
-**b)** Fit a linear regression model to the data. Use both the step-up and the step-down method to find the best model. If step-up and step-down yield two different models, choose one and motivate your choice.
+# 1st factor
+R2 = numeric(length(factors))
+for (i in 1:length(factors)) {
+  R2[i] = summary(lm(paste('expend',  '~', factors[i]), data=expenses))[[8]]
+}
 
+print("R^2 values for addition of first variable:"); factors; R2
+factor_one = factors[which.max(R2)]
+print(paste0("Factor with highest R^2 value: ", factor_one))
+# remove chosen first factor from list
+factors = factors[-which.max(R2)]
 
-**c)** Check the model assumptions by using relevant diagnostic tools.
+# 2nd factor
+R2 = numeric(length(factors))
+for (i in 1:length(factors)) {
+  R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factors[i]), data=expenses))[[8]]
+}
 
+print("R^2 values for addition of second variable:"); factors; R2
+factor_two = factors[which.max(R2)]
+print(paste0("Factor with highest R^2 value: ", factor_two))
 
+summary(lm(expend~employ), data=expenses)
+```
+The step up method resulted in a model which used only the variable employ and a R^2 value of 0.956. The addition of a second parameter, as shown above, would only increase the R^2 value to a maximum of 0.965. However, this small increase is not worth the addition of another variable and thus the final model used one variable. This resulted in:
+expend = 23.242 + 0.037 * employ + error
+with an R^2 value of 0.956
 
+step-down method
+```{r echo=FALSE}
+# start with all variables
+summary(lm(expend~bad+crime+lawyers+employ+pop, data=expenses))[4]
+print("Crime has highest p-value of 9.86e-1, thus remove crime as variable")
 
+summary(lm(expend~bad+lawyers+employ+pop, data=expenses))[4]
+print("Pop has highest p-value of 0.270, thus remove pop as variable")
 
+summary(lm(expend~bad+lawyers+employ, data=expenses))
+print("Bad has highest p-value of 0.045, which is below 0.05")
+```
+All of the three left over variables, bad, lawyers and employ are smaller than 0.05, thus final model keeps these three factors. This results in:
+expend = 16.5877 + 2.001 * bad + 0.020 * lawyers + 0.020 * employ + error
+with a R^2 value of 0.965.
+The step-up method resulted in the model that only uses one variable, employ. This resulted in the following model:
+expend = 23.242 + 0.037 * employ + error
+with an R^2 value of 0.956.
 
+We prefer the model of the step-up method, because it uses one variables instead of three for a slightly lower R^2 value.
 
+**5c)**
+The model assumptions will be checked for the model that resulted from the step up method.
+```{r warning=FALSE}
+attach(expenses)
+stepuplm = lm(expend~employ)
 
+# 2
+par(mfrow=c(2,2))
+plot(residuals(stepuplm), employ, main="Scatter plot against employ")
 
+# 3
+x = residuals(lm(employ~bad+crime+lawyers+pop))
+y = residuals(lm(expend~bad+crime+lawyers+pop))
+plot(x,y,main="Added variable plot for + Employ", xlab="residual of Employ", ylab="residual of Expend")
 
+# 4
+# par(mfrow=c(2,2))
+# plot(residuals(stepuplm), bad, main="Scatter plot against bad")
+# plot(residuals(stepuplm), crime, main="Scatter plot against crime")
+# plot(residuals(stepuplm), lawyers, main="Scatter plot against lawyers")
+# plot(residuals(stepuplm), pop, main="Scatter plot against pop")
 
+# 5
+par(mfrow=c(2,2))
+plot(residuals(stepuplm), expend)
+plot(residuals(stepuplm),fitted(stepuplm))
 
-
-
-
+# 6
+plot(stepuplm, 2)
+```
+The plot of the residuals against each variable not in the model did not show any linear model and thats why they are not shown.
+After removal of the outliers, the qq-plot shows a linear line. ??? is dat zo?

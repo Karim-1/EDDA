@@ -12,46 +12,20 @@ options(digits=3)
 students = read.table("search.txt",header=TRUE)
 students
 ```
-A researcher is interested in the time it takes a student to find a certain product on the internet using a search engine. There are three different types of interfaces with the search engine and especially the effect of these interfaces is of importance. There are five different types of students, indicating their level of computer skill (the lower the value of this indicator, the better the computer skill of the corresponding student). Fifteen students are selected; three from each group with a certain level of computer skill. The data is given in the file search.txt. Assume that the experiment was run according to a randomized block design which you make in a). (Beware that the levels of the factors are coded by numbers.)
-**2a** 
-randomised block design
+**2a** randomised block design
 ```{r echo=FALSE}
-# lower the skill value the better the computer skill
-# randomized block design
-# numerical outcome Y
-# treatment, factor of interest with I levels (type of interface)
-# block, factor that is not of interest, B, (computer skill)
-
-# purpose is to find dependence of Y on I
-# block variable is thought to be of influence.
-# our problem is same as example lec5slide23
 I = 3
 B = 5
 N = 1
 for (b in 1:B) {
   print(sample(1:(N*I)))
 }
-# maar hoe dat 15 studenten erin worden vernoemd?
-
 # example output: 2 3 1
 # means: assign student 2 to treatment 3, student 3 to treatment 1 and student 1 to treatment 2
-
-# unit is that that receives the treatment, so student
 ```
-dus skill level 1
-student 3 interface 1
-student 1 interface 2
-student 2 interface 3
+The 5 different blocks (rows) show how the experiment could be conducted by using the randomized block design. Each block is one of the 5 skill levels and it tells us how the 3 students of the skill level should be divided over the 3 interfaces. For example, for block (skill level) 1 it assigns student 2 to interface 3, student 3 to interface 1 and student 1 to interface 2.
 
-de 3 studenten van skill level 1:
-3 1 2
-
-de 3 studenten van skill 2 level 2:
-1 2 3
-
-**2b**
-Test the null hypothesis that the search time is the same for all interfaces. 
-
+**2b** Test the null hypothesis that the search time is the same for all interfaces. 
 What type of interface does require the longest search time? For which combination of skill level and type of interface is the search time the shortest? Estimate the time it takes a typical user of skill level 3 to find the product on the website if the website uses interface 3.
 ```{r message=FALSE, warning=FALSE}
 students$interface = as.factor(students$interface)
@@ -65,8 +39,8 @@ boxplot(time~skill)
 
 interaction.plot(interface,skill,time)
 
-studentslm = lm(time~interface*skill)
-# anova(studentsaov2)
+studentslm = lm(time~interface+skill)
+anova(studentslm)
 ```
 --------- If assume normal then this:
 p value for interface:skill is 0.340. So there is no evidence for interaction. 
@@ -89,30 +63,21 @@ Which combination of skill and interface is search time shortest
 ```{r}
 students[which.min(students$time),]
 ```
-
-estimate time it takes for skill level 3 to find product with interface 3
-So treatment(I) = 3, block(B)=3
-
-Found on wiki:
-estimate for B_j: barY_j - barY with barY_j
-
-
 ```{r}
 summary(studentslm)
 ```
+The estimation of time it takes a typical user of skill level 3 to find the product on the website if the website uses interface 3 will be based on the summary above. This results in the following formula:
+time = 15.01 + 4.46 + 3.03
+This results in the estimation that it takes a user of skill level 3, 22.5 to find a product on the website when using interface 3.
 
-**2c**
-check the model assumptions by using relevant diagnostic tools
+**2c** check the model assumptions by using relevant diagnostic tools
 ```{r}
-qqnorm(time)
-shapiro.test(time)
-# normality is questionable, so kruskall willis
-boxplot(time)
-stripchart(time~interface, vertical = TRUE)
+qqnorm(residuals(studentslm))
+plot(fitted(studentslm),residuals(studentslm))
 ```
+The Q-Q plot seems fairly normal. This combined with the residuls, which are normally distributed
 
-**2d**
-Perform the Friedman test to test whether ther is an effect of interface
+**2d** Perform the Friedman test to test whether ther is an effect of interface
 ```{r}
 interaction.plot(students$interface, students$skill, students$time)
 friedman.test(time,interface,skill,data=students)
@@ -120,7 +85,6 @@ friedman.test(time,interface,skill,data=students)
 The Friedman test gives us a p-value of 0.04. This is smaller than 0.05 and thus we reject the H0 hypothesis. This mean that the interface has an effect on the search time.
 
 **2e**
-test H0 that search time is the same for all interfaces by a one-way ANOVA, ignoring the variable skill. is it right/wrong or useful/not useful to perform this test on this dataset.
 ```{r}
 studentsaov = lm(time ~ interface, data=students)
 plot(studentsaov,1)
@@ -133,7 +97,12 @@ summary(studentsaov)
 # fitted(studentsaov)
 # residuals(studentsaov)
 ```
-p-value < 0.05 thus we reject H0. There is a significant difference between interfaces. It is wrong to use a one-way ANOVA test here because the normality of the data is questionable... (MIGHT NEED MORE). 
+p-value < 0.05 thus we reject H0. There is a significant difference between interfaces. It is wrong to use a one-way ANOVA test here 
+because the normality of the data is questionable... (MIGHT NEED MORE). 
+
+right wrong useful not useful
+alleen de interface niet de skill level. Conclusie dat het goed is als skill levels ook uniform verdeeld zijn. Want die zijn representatief voor de samenleving/ mensen die het moeten gebruiken
+
 Is it useful or not? I think not because not normal. However, Kruskal willis accepts H0, and Friedman rejects H0. Look up what this means/how to argue about this in relation to ANOVA begin useful or not.
 
 
@@ -189,59 +158,23 @@ R2 = numeric(length(factors))
 for (i in 1:length(factors)) {
   R2[i] = summary(lm(paste('expend',  '~', factors[i]), data=expenses))[[8]]
 }
-print("R^2 values for addition of first variable:")
-factors
-R2
+
+print("R^2 values for addition of first variable:"); factors; R2
 factor_one = factors[which.max(R2)]
 print(paste0("Factor with highest R^2 value: ", factor_one))
 
 # remove chosen first factor from list
 factors = factors[-which.max(R2)]
 
-
 # 2nd factor
 R2 = numeric(length(factors))
 for (i in 1:length(factors)) {
   R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factors[i]), data=expenses))[[8]]
 }
-print("R^2 values for addition of second variable:")
-factors
-R2
+
+print("R^2 values for addition of second variable:"); factors; R2
 factor_two = factors[which.max(R2)]
 print(paste0("Factor with highest R^2 value: ", factor_two))
-
-# remove chosen second factor from list
-# factors = factors[-which.max(R2)]
-# print("Factors left: "); factors
-
-
-# # 3rd factor
-# R2 = numeric(length(factors))
-# for (i in 1:length(factors)) {
-#   R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factors[i]), data=expenses))[[8]]
-# }
-# R2
-# factor_three = factors[which.max(R2)]
-# print(paste0("Factor with highest R^2 value: ", factor_three))
-# 
-# # remove chosen third factor from list
-# factors = factors[-which.max(R2)]
-# print("Factors left: "); factors
-# 
-# 
-# # 4th factor
-# R2 = numeric(length(factors))
-# for (i in 1:length(factors)) {
-#   R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factor_three, '+', factors[i]), data=expenses))[[8]]
-# }
-# R2
-# factor_four = factors[which.max(R2)]
-# print(paste0("Factor with highest R^2 value: ", factor_four))
-# 
-# last_factor = factors[-which.max(R2)]
-# print(paste0("last factor left: ", last_factor))
-
-# resulting in the model.... lecture 8 slide 11. is na employ gekozen te hebben de increase in R2, van 0.954 naar 0.963 al niet meer significant dus stoppen?
 
 summary(lm(expend~employ), data=expenses)
 
@@ -277,6 +210,7 @@ with an R^2 value of 0.955
 
 We prefer the model of the step up method, because it uses only one variable instead of two for a slightly lower R^2 value.
 
+
 **5c**
 Check model assumptions by using relevant diagnostic tools.
 (lecture 8, diagnostics in linear regression)
@@ -284,6 +218,7 @@ Check model assumptions by using relevant diagnostic tools.
 To check the model quality look at 
 1. scatter plot: plot Y against each Xk separately (this yields overall picture, and shows outlying values)
 2. scatter plot: plot residuals against each Xk in the model separately (look at pattern (curved?) and spread)
+
 3. added variable plot (partial regression plot, see Velleman and Welsch (1981)): plot residuals of Xj against residuals of Y with omitted Xj (to show the effect of adding Xj to the model.) (Or, to show the relationship between Y and Xj , once all other predictors have been accounted for.)
 4. scatter plot: plot residuals against each Xk not in the model separately (look at pattern — linear? then include!)
 5. scatter plot: plot residuals against Y and ˆY (look at spread) 
@@ -300,13 +235,20 @@ stepuplm = lm(expend~employ)
 # 2
 plot(residuals(stepuplm), employ, main="Scatter plot against employ")
 
+# expenses$employlog = log(expenses$employ)
+# expenses$employlog = 
+# attach(expenses)
+# stepuplmlog = lm(expend~employlog)
+# plot(residuals(stepuplmlog), employlog, main="Scatter plot against employlog")
+
+
 # 3
 x = residuals(lm(employ~bad+crime+lawyers+pop))
 y = residuals(lm(expend~bad+crime+lawyers+pop))
 plot(x,y,main="Added variable plot for + Employ", xlab="residual of Employ", ylab="residual of Expend")
 
 # 4
-par(mfrow=c(2,2))
+# par(mfrow=c(2,2))
 plot(residuals(stepuplm), bad, main="Scatter plot against bad")
 plot(residuals(stepuplm), crime, main="Scatter plot against crime")
 plot(residuals(stepuplm), lawyers, main="Scatter plot against lawyers")
@@ -314,7 +256,6 @@ plot(residuals(stepuplm), pop, main="Scatter plot against pop")
 # NIKS LINEAR DUS KAN WEG?
 
 # 5
-# WAT IS DAKJE Y, in slides fat dus ik denk nu expend
 plot(residuals(stepuplm), expend)
 plot(residuals(stepuplm),fitted(stepuplm))
 
@@ -323,4 +264,5 @@ qqnorm(residuals(stepuplm))
 # slide 21
 shapiro.test(residuals(stepuplm))
 ```
+point 4, checked for linear patterns. No pattern found and thus plots not included.
 
