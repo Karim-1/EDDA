@@ -120,9 +120,8 @@ boxplot(time~interface)
 boxplot(time~skill)
 studentslm = lm(time~interface+skill)
 anova(studentslm)
-# summary(anova(studentslm))
 ```
-p value for interface:skill is 0.340. So there is no evidence for interaction. 
+A two-way anova gives us a p value for interface of 0.013 this is below the threshold of 0.05 and thus is the interface significant. This means that the search time is not the same for all interfaces.
 
 What type of interface requires the longest search time?
 ```{r}
@@ -434,5 +433,5 @@ plot(residuals(stepuplm),fitted(stepuplm))
 # 6
 plot(stepuplm, 2)
 ```
-The plot of the residuals against each variable not in the model did not show any linear model and thats why they are not shown.
-After removal of the outliers, the qq-plot shows a linear line. ??? is dat zo?
+The plot of the residuals against each variable not in the model did not show any linear model and this is why they are not shown.
+The qq-plot shows a non-linear line. Another step could be to try and transform the data. However, this did not result in any improvements and was thus not included.
