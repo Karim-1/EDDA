@@ -70,12 +70,11 @@ bread$humidity=as.factor(bread$humidity)
 breadov=lm(hours~environment*humidity)
 anova(breadov)
 ```
-The p-value for $H_0$ for both factors $A$ and $B$ is <0.001, which is lower than our significance value \alpha (.05). From this, we can conclude the the variation between different environments is larger than within environments. The same can be concluded for humidity; the variation between a dry and wet environment is higher than within those two environments. Therefore, a main effect is found for both variables and we may accept $H_A$ that there is a significant relationship between a bread's environment and its decay, as well as for $H_B$; there is a significant relationship betwheen the humidity and decay of bread (within our confidence interval).
+The p-value for $H_0$ for both factors $A$ and $B$ is <0.001, which is lower than our significance value \alpha (.05). From this, we can conclude that the variation between different environments is larger than within environments. The same can be concluded for humidity; the variation between a dry and wet environment is higher than within those two environments. Therefore, a main effect is found for both variables and we may accept $H_A$ that there is a significant relationship between a bread's environment and its decay, as well as for $H_B$; there is a significant relationship between the humidity and decay of bread (within our confidence interval).
 
 The p-value for the interaction effect between the factors $AB$ too is <0.001. From this, we may accept the alternative hypothesis $H_{AB}$ that there is a interaction effect between the environment's temperature and humidity on the decay of the bread. This confirms our findings in the interaction plot in 1c), where we observed that the lines are not parallel to each other.
 
 **1d)** 
-
 To answer the question of which of the two factors has the greatest (numerical) influence on the decay, the additive model is generated:
 ```{r}
 breadov1=lm(hours~environment+humidity)
@@ -98,7 +97,7 @@ In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks
 students = read.table("search.txt",header=TRUE)
 ```
 
-**2a)** randomised block design
+**2a)** Firstly, we randomize the students to the interfaces in a randomized block design.
 ```{r echo=FALSE}
 I = 3
 B = 5
@@ -107,9 +106,9 @@ for (b in 1:B) {
   print(sample(1:(N*I)))
 }
 ```
-The 5 different blocks (rows) show how the experiment could be conducted by using the randomized block design. Each block is one of the 5 skill levels and it tells us how the 3 students of the skill level should be divided over the 3 interfaces. For example, for block (skill level) 1 it assigns student 2 to interface 3, student 3 to interface 1 and student 1 to interface 2.
+The 5 different blocks (rows) show how the experiment could be conducted by using the randomized block design. Each block is one of the 5 skill levels and it tells us how the 3 students of the skill level should be divided over the 3 interfaces. For example, for block (skill level) 1 student 2 is assigned to interface 3, student 3 is assigned to interface 1 and student 1 to interface 2.
 
-**2b)** Test the null hypothesis that the search time is the same for all interfaces. 
+**2b)** Then we test the null hypothesis that the search time is the same for all interfaces. 
 ```{r message=FALSE, warning=FALSE}
 students$interface = as.factor(students$interface)
 students$skill = as.factor(students$skill)
@@ -118,61 +117,62 @@ attach(students)
 par(mfrow=c(1,2))
 boxplot(time~interface)
 boxplot(time~skill)
-studentslm = lm(time~interface+skill)
+studentslm = lm(time~skill+interface)
 anova(studentslm)
 ```
-A two-way anova gives us a p value for interface of 0.013 this is below the threshold of 0.05 and thus is the interface significant. This means that the search time is not the same for all interfaces.
+In the boxplot, it can be observed that the medians for all interfaces and skill levels differ from each other. The significance of these difference can be found in the output of the two-way ANOVA. This gives us a p-value for interface of .013 this is below the alpha significance level of .05. This means that we reject the null hypothesis that the search time is the same for all interfaces.
 
-What type of interface requires the longest search time?
+Next, we examine which type of interface requires the longest search time.
 ```{r}
 inter1 = mean(students$time[interface==1])
 inter2 = mean(students$time[interface==2])
 inter3 = mean(students$time[interface==3])
 which.max(c(inter1, inter2, inter3))
 ```
-interface 3 has the highest mean search time.
+We find that interface 3 has the highest mean search time.
 
-Which combination of skill and interface is search time shortest
+Moreover, we explore which combination of skill and interface has the shortest search time.
 ```{r}
 students[which.min(students$time),]
 ```
-The combination of skill and interface that leads to the shortest search time is: Skill level = 2 and interface = 1.
+The combination of skill and interface that leads to the shortest search time is skill level 2 and interface 1.
 
+The time it takes a typical user of skill level 3 to find the product on the website if the website uses interface 3 is then estimated.
 ```{r}
 summary(studentslm)
 ```
-The estimation of time it takes a typical user of skill level 3 to find the product on the website if the website uses interface 3 will be based on the summary above. This results in the following formula:
+From the summary, we can calculate the answer to our question. This results in the following formula:
 time = 15.01 + 4.46 + 3.03
 This results in the estimation that it takes a user of skill level 3, 22.5 to find a product on the website when using interface 3.
 
-**2c)** check the model assumptions by using relevant diagnostic tools
+**2c)** Then, we check the model assumptions by using relevant diagnostic tools.
 ```{r}
-qqnorm(residuals(studentslm))
-plot(fitted(studentslm),residuals(studentslm))
+plot(studentslm,2)
+plot(studentslm,1)
 ```
-The Q-Q plot seems fairly normal. This combined with the residuals, which are normally distributed
+The Q-Q plot seems to deviate from normal. Furthermore, the spread of variance looks slightly unstable for some fitted values, which implies that there may be a relationship between residuals and fitted values. Therefore, homogeneity of variance is questionable.
 
-**2d)** Perform the Friedman test to test whether their is an effect of interface
+**2d)** Then, we perform the Friedman test to test whether there is an effect of the interface on search time.
 ```{r}
 interaction.plot(students$interface, students$skill, students$time)
 friedman.test(time,interface,skill,data=students)
 ```
-The Friedman test gives us a p-value of 0.04. This is smaller than 0.05 and thus we reject the H0 hypothesis. This mean that the interface has an effect on the search time.
+The Friedman test gives us a p-value of .04. This is smaller than the significance level alpha (.05), therefore we reject H0, implying that the interface has an effect on the search time.
 
 **2e)**
+Lastly, we test the null hypothesis that the search time is the same for all interfaces with a one-way ANOVA test, ignoring the variable skill.
 ```{r}
 studentsaov = lm(time ~ interface, data=students)
-plot(studentsaov,1)
 
 anova(studentsaov)
-summary(studentsaov)
+# summary(studentsaov)
 ```
-p-value < 0.05 thus we reject H0. There is a significant difference between interfaces. It is not wrong to use a one-way ANOVA test because the skill variable is also how it is (uniformly) spread over the population of people who would use the interfaces, meaning that it represents the society. This makes it so that only testing for interface is also viable.
+The p-value > .05, therefore we would not reject $H_0$, meaning that we don't find a significant difference between interfaces. It may be incorrect to use a one-way ANOVA test, because the skill variable may not be spread equally (uniformly) across the population of people who would use the interfaces, meaning that it may not represent the society. Therefore, if only interface would be tested, a random (and preferable larger) sample should be taken from the population. 
 
 ### Exercise 3. Feedingstuffs for cows
 In a study on the effect of feedingstuffs on lactation, a sample of nine cows were fed food of two types, and their milk production was measured. All cows were fed both types of food, during two periods, with a neutral period in-between to try and wash out carry-over effects. The order of the types of food was randomized over the cows. The observed data can be found in the file cow.txt, where A and B refer to the types of feedingstuffs.
 
-**3a)** Test whether the type of feedingstuffs influences milk production using an ordinary “fixed effects” model, fitted with lm. Estimate the difference in milk production.
+**3a)** We first test whether the type of feedingstuffs influences milk production using an ordinary “fixed effects” model, fitted with lm. To do this, we first read in the data and define the different factors.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(lme4)
@@ -183,9 +183,9 @@ cow$id=factor(cow$id)
 cow$per=factor(cow$per)
 cow$order=factor(cow$order)
 attach(cow)
-# boxplot(milk~treatment)
 ```
 
+Then, an ANOVA is performed for the different factors.
 
 ```{r}
 anova(lm(milk~id+per+treatment))
