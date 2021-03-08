@@ -82,21 +82,20 @@ breadov1=lm(hours~environment+humidity)
 anova(breadov1)
 ```
 
+Based on the additive ANOVA model of the two factors, it can be noted that the $F_A$ (23.11) is higher than $F_B$ (6.16). From this, we may conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay than humidity. However, since an interaction effect was found between the two factors, this conclusion cannot be made. Since an interaction effect was found, the relationship between the environment/humidity and hours to decay may be influenced by a third factor. Therefore "which of the two factors has the greatest (numerical) influence on the decay" is not a good question in this case.
 
-Based on the ANOVA of the two factors, it can be noted that the $F_A$ (23.11) is higher than $F_B$ (6.16). From this, we may conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay than humidity. However, since an interaction effect was found between the two factors, this conclusion can not be made. Since an interaction effect was found, the relationship between the environment/humidity and hours to decay may be influenced by a third factor. Therefore "which of the two factors has the greatest (numerical) influence on the decay" is not a good question in this case.
-
-**1e)** Check the model assumptions by using relevant diagnostic tools. Are there any outliers?
+**1e)** 
 Lastly, we check the model assumptions using relevant diagnostic tools. These assumptions consist of normality and equal variances of the residuals.
 ```{r}
+par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
 plot(breadov,2)
 plot(breadov,1)
 ```
-In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks relatively stable for all fitted values, which implies that there is no relationship between residuals and fitted values. Therefore, homogeneity of variance can be assumed. Nevertheless, some of the data points (marked with 7 and 8) look to be extreme however. These may have a severely affect the normality of the data. We may consider these outliers and trim the data of these values.
+In the Q-Q plot, normality looks dubious. Moreover, the spread of variance looks slightly unstable for some fitted values, which implies that there may be a relationship between residuals and fitted values. Therefore, homogeneity of variance cannot be assumed. This is caused by some of the data points (marked with 5, 7 and 8), which look to be extreme. These datapoints also have an affect on the normality of the data. We may consider these outliers and trim the data of these values.
 
 ### Exercise 2: Search engine
 ```{r}
 students = read.table("search.txt",header=TRUE)
-students
 ```
 
 **2a)** randomised block design
@@ -152,9 +151,9 @@ This results in the estimation that it takes a user of skill level 3, 22.5 to fi
 qqnorm(residuals(studentslm))
 plot(fitted(studentslm),residuals(studentslm))
 ```
-The Q-Q plot seems fairly normal. This combined with the residuls, which are normally distributed
+The Q-Q plot seems fairly normal. This combined with the residuals, which are normally distributed
 
-**2d)** Perform the Friedman test to test whether ther is an effect of interface
+**2d)** Perform the Friedman test to test whether their is an effect of interface
 ```{r}
 interaction.plot(students$interface, students$skill, students$time)
 friedman.test(time,interface,skill,data=students)
@@ -202,6 +201,7 @@ In the given data Feedingstuff B is estimated to give 0.510 times less milk than
 
 Check assumptions:
 ```{r}
+par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
 plot(lm(milk~id+per+treatment), 1)
 plot(lm(milk~id+per+treatment), 2)
 ```
@@ -258,7 +258,6 @@ To investigate whether Austen's work was consistent in her different novels, we 
 ```{r}
 wordcounts = read.table("austen.txt", header=TRUE)
 austen = subset(wordcounts, select = c('Sense', 'Emma', 'Sand1'))
-austen
 z=chisq.test(austen)
 z
 ```
@@ -297,12 +296,11 @@ From the table we can gather that these differences lay;
 ### Exercise 5:
 The data in expensescrime.txt were obtained to determine factors related to state expenditures on criminal activities (courts, police, etc.) The variables are: state (indicating the state in the USA), expend (state expenditures on criminal activities in $1000), bad (crime rate per 100000), crime (number of persons under criminal supervision), lawyers (number of lawyers in the state), employ (number of persons employed in the state) and pop (population of the state in 1000). In the regression analysis, take expend as response variable and bad, crime, lawyers, employ and pop as explanatory variables.
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(lme4)
 expenses = read.table("expensescrime.txt",header=TRUE)
 expenses$state=as.factor(expenses$state)
 attach(expenses)
-expenses
 ```
 
 **5a)** Make some graphical summaries of the data. Investigate the problem of potential and influence points, and the problem of collinearity.
@@ -408,7 +406,7 @@ We prefer the model of the step-up method, because it uses one variables instead
 
 **5c)**
 The model assumptions will be checked for the model that resulted from the step up method.
-```{r warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 attach(expenses)
 stepuplm = lm(expend~employ)
 
