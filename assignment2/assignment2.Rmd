@@ -83,9 +83,9 @@ anova(breadov1)
 ```
 
 
-Based on the ANOVA of the two factors, it can be noted that the $F_A$ (23.11) is higher than $F_B$ (6.16). From this, we may conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay than humidity. However, since an interaction effect was found between the two factors, this conclusion can not be made. Since an interaction effect was found, the relationship between the environment/humidity and hours to decay may be influenced by a third factor. Therefore "which of the two factors has the greatest (numerical) influence on the decay" is not a good question in this case.
+Based on the additive ANOVA model of the two factors, it can be noted that the $F_A$ (23.11) is higher than $F_B$ (6.16). From this, we may conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay than humidity. However, since an interaction effect was found between the two factors, this conclusion cannot be made. Since an interaction effect was found, the relationship between the environment/humidity and hours to decay may be influenced by a third factor. Therefore "which of the two factors has the greatest (numerical) influence on the decay" is not a good question in this case.
 
-**1e)** Check the model assumptions by using relevant diagnostic tools. Are there any outliers?
+**1e)** 
 Lastly, we check the model assumptions using relevant diagnostic tools. These assumptions consist of normality and equal variances of the residuals.
 ```{r}
 plot(breadov,2)
