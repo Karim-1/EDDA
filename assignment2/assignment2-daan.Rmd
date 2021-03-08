@@ -54,13 +54,13 @@ Test the null hypothesis that the search time is the same for all interfaces.
 
 What type of interface does require the longest search time? For which combination of skill level and type of interface is the search time the shortest? Estimate the time it takes a typical user of skill level 3 to find the product on the website if the website uses interface 3.
 ```{r message=FALSE, warning=FALSE}
+
+students$interface = as.factor(students$interface)
+students$skill = as.factor(students$skill)
 attach(students)
 interaction.plot(interface,skill,time)
-# students$interface = as.factor(students$interface)
-# students$skill = as.factor(students$skill)
-
-studentslm = lm(time~interface+skill)
-# anova(studentsaov2)
+studentslm = lm(time~interface*skill)
+anova(studentslm)
 ```
 --------- If assume normal then this:
 p value for interface:skill is 0.340. So there is no evidence for interaction. 
@@ -81,29 +81,20 @@ interface 3 has the highest mean search time.
 
 Which combination of skill and interface is search time shortest
 ```{r}
-summary(studentslm)
+which.min(students$time)
+students[2,]
 ```
-
-estimate time it takes for skill level 3 to find product with interface 3
-So treatment(I) = 3, block(B)=3
-
-Found on wiki:
-estimate for B_j: barY_j - barY with barY_j
-
+Interface 3 with skill 4 is lowest time (16.1 - 3.3), this
 
 ```{r}
-
-
+summary(studentslm)
 ```
 
 **2c**
 check the model assumptions by using relevant diagnostic tools
 ```{r}
-qqnorm(time)
-shapiro.test(time)
-# normality is questionable, so kruskall willis
-boxplot(time)
-stripchart(time~interface, vertical = TRUE)
+qqnorm(residuals(studentslm))
+plot(fitted(studentslm),residuals(studentslm))
 ```
 
 **2d**
@@ -128,7 +119,12 @@ summary(studentsaov)
 # fitted(studentsaov)
 # residuals(studentsaov)
 ```
-p-value < 0.05 thus we reject H0. There is a significant difference between interfaces. It is wrong to use a one-way ANOVA test here because the normality of the data is questionable... (MIGHT NEED MORE). 
+p-value < 0.05 thus we reject H0. There is a significant difference between interfaces. It is wrong to use a one-way ANOVA test here 
+because the normality of the data is questionable... (MIGHT NEED MORE). 
+
+right wrong useful not useful
+alleen de interface niet de skill level. Conclusie dat het goed is als skill levels ook uniform verdeeld zijn. Want die zijn representatief voor de samenleving/ mensen die het moeten gebruiken
+
 Is it useful or not? I think not because not normal. However, Kruskal willis accepts H0, and Friedman rejects H0. Look up what this means/how to argue about this in relation to ANOVA begin useful or not.
 
 
@@ -184,59 +180,23 @@ R2 = numeric(length(factors))
 for (i in 1:length(factors)) {
   R2[i] = summary(lm(paste('expend',  '~', factors[i]), data=expenses))[[8]]
 }
-print("R^2 values for addition of first variable:")
-factors
-R2
+
+print("R^2 values for addition of first variable:"); factors; R2
 factor_one = factors[which.max(R2)]
 print(paste0("Factor with highest R^2 value: ", factor_one))
 
 # remove chosen first factor from list
 factors = factors[-which.max(R2)]
 
-
 # 2nd factor
 R2 = numeric(length(factors))
 for (i in 1:length(factors)) {
   R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factors[i]), data=expenses))[[8]]
 }
-print("R^2 values for addition of second variable:")
-factors
-R2
+
+print("R^2 values for addition of second variable:"); factors; R2
 factor_two = factors[which.max(R2)]
 print(paste0("Factor with highest R^2 value: ", factor_two))
-
-# remove chosen second factor from list
-# factors = factors[-which.max(R2)]
-# print("Factors left: "); factors
-
-
-# # 3rd factor
-# R2 = numeric(length(factors))
-# for (i in 1:length(factors)) {
-#   R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factors[i]), data=expenses))[[8]]
-# }
-# R2
-# factor_three = factors[which.max(R2)]
-# print(paste0("Factor with highest R^2 value: ", factor_three))
-# 
-# # remove chosen third factor from list
-# factors = factors[-which.max(R2)]
-# print("Factors left: "); factors
-# 
-# 
-# # 4th factor
-# R2 = numeric(length(factors))
-# for (i in 1:length(factors)) {
-#   R2[i] = summary(lm(paste('expend',  '~', factor_one, '+', factor_two, '+', factor_three, '+', factors[i]), data=expenses))[[8]]
-# }
-# R2
-# factor_four = factors[which.max(R2)]
-# print(paste0("Factor with highest R^2 value: ", factor_four))
-# 
-# last_factor = factors[-which.max(R2)]
-# print(paste0("last factor left: ", last_factor))
-
-# resulting in the model.... lecture 8 slide 11. is na employ gekozen te hebben de increase in R2, van 0.954 naar 0.963 al niet meer significant dus stoppen?
 
 summary(lm(expend~employ), data=expenses)
 
@@ -272,6 +232,7 @@ with an R^2 value of 0.955
 
 We prefer the model of the step up method, because it uses only one variable instead of two for a slightly lower R^2 value.
 
+
 **5c**
 Check model assumptions by using relevant diagnostic tools.
 (lecture 8, diagnostics in linear regression)
@@ -279,6 +240,7 @@ Check model assumptions by using relevant diagnostic tools.
 To check the model quality look at 
 1. scatter plot: plot Y against each Xk separately (this yields overall picture, and shows outlying values)
 2. scatter plot: plot residuals against each Xk in the model separately (look at pattern (curved?) and spread)
+
 3. added variable plot (partial regression plot, see Velleman and Welsch (1981)): plot residuals of Xj against residuals of Y with omitted Xj (to show the effect of adding Xj to the model.) (Or, to show the relationship between Y and Xj , once all other predictors have been accounted for.)
 4. scatter plot: plot residuals against each Xk not in the model separately (look at pattern — linear? then include!)
 5. scatter plot: plot residuals against Y and ˆY (look at spread) 
@@ -295,13 +257,20 @@ stepuplm = lm(expend~employ)
 # 2
 plot(residuals(stepuplm), employ, main="Scatter plot against employ")
 
+# expenses$employlog = log(expenses$employ)
+# expenses$employlog = 
+# attach(expenses)
+# stepuplmlog = lm(expend~employlog)
+# plot(residuals(stepuplmlog), employlog, main="Scatter plot against employlog")
+
+
 # 3
 x = residuals(lm(employ~bad+crime+lawyers+pop))
 y = residuals(lm(expend~bad+crime+lawyers+pop))
 plot(x,y,main="Added variable plot for + Employ", xlab="residual of Employ", ylab="residual of Expend")
 
 # 4
-par(mfrow=c(2,2))
+# par(mfrow=c(2,2))
 plot(residuals(stepuplm), bad, main="Scatter plot against bad")
 plot(residuals(stepuplm), crime, main="Scatter plot against crime")
 plot(residuals(stepuplm), lawyers, main="Scatter plot against lawyers")
@@ -309,7 +278,6 @@ plot(residuals(stepuplm), pop, main="Scatter plot against pop")
 # NIKS LINEAR DUS KAN WEG?
 
 # 5
-# WAT IS DAKJE Y, in slides fat dus ik denk nu expend
 plot(residuals(stepuplm), expend)
 plot(residuals(stepuplm),fitted(stepuplm))
 
@@ -318,4 +286,5 @@ qqnorm(residuals(stepuplm))
 # slide 21
 shapiro.test(residuals(stepuplm))
 ```
+point 4, checked for linear patterns. No pattern found and thus plots not included.
 
