@@ -52,7 +52,7 @@ layout(matrix(c(1,2,3,3), ncol=2, byrow=TRUE), heights=c(3, 1))
 interaction.plot(environment, humidity, hours)
 interaction.plot(humidity, environment, hours)
 ```
-In the plots it can be noted that the lines are not parallel. This may imply an interaction effect. However, noise might also be the cause of dissimilarities in the line slopes. To further investigate the significance of interaction between factors, a two way ANOVA is appropriate.
+In the plots it can be noted that the lines are not parallel. In the left interaction plotm, we note that in the wet condition, the temperature looks to have a larger effect on the hours of decay than in the dry condition. In the right interaction plot, we find a higher hours to decay in the wet condition for the cold environment than in the dry condition. For the intermediate and warm environment, a vice versa effect is found; the mean hours to decay is lower in the wet condition than in the dry condition.  Thus, an interaction effect is found. However, noise might also be the cause of dissimilarities in the line slopes. To further investigate the significance of interaction between factors, a two way ANOVA is appropriate. 
 
 **1c)** 
 A two way ANOVA is performed to test the effect of the factors and their interaction.
@@ -62,7 +62,7 @@ We define the alternative hypothesis as followed:
 - There is an effect of humidity on the decay of bread ($H_B$)
 - There is an interaction effect between the environments temperature and humidity on the decay of bread ($H_{AB}$)
 
-To research these hypothesis, we need to determine the $F_A$, $F_B$ and $F_{AB}$ statistic with a two way ANOVA. 
+To research these hypotheses, we need to determine the $F_A$, $F_B$ and $F_{AB}$.
 ```{r}
 bread$environment=as.factor(bread$environment)
 bread$humidity=as.factor(bread$humidity)
@@ -70,19 +70,17 @@ bread$humidity=as.factor(bread$humidity)
 breadov=lm(hours~environment*humidity)
 anova(breadov)
 ```
-The p-value for both $H_0$ with factors $A_i=0$ and $B_j =0$ (TODO, dit iets anders schrijven) for all $i$ is <0.001, which is lower than our significance value \alpha (.05). From this, we can conclude the the variation between different environments is much larger than within environments. The same can be concluded for humidity; the variation between a dry and wet environment is higher than within those two environments. Therefore, a main effect is found for both variables and we may accept the alternative hypothesis that there is a significant relationship between a bread's environment and its decay, as well as between the humidity and decay of bread (within our confidence interval).
+The p-value for $H_0$ for both factors $A$ and $B$ is <0.001, which is lower than our significance value \alpha (.05). From this, we can conclude the the variation between different environments is larger than within environments. The same can be concluded for humidity; the variation between a dry and wet environment is higher than within those two environments. Therefore, a main effect is found for both variables and we may accept $H_A$ that there is a significant relationship between a bread's environment and its decay, as well as for $H_B$; there is a significant relationship betwheen the humidity and decay of bread (within our confidence interval).
 
-The p-value for the interaction effect between the factors $H0 :\gamma_{i,j} =0$ too is <0.001. From this, we may accept the alternative hypothesis that there is a interaction effect between the environment's temperature and humidity on the decay of the bread. This confirms our findings in the interaction plot in 1c), where we observed that the lines are not parallel to each other. TODO: interpretatie. 
+The p-value for the interaction effect between the factors $AB$ too is <0.001. From this, we may accept the alternative hypothesis $H_{AB}$ that there is a interaction effect between the environment's temperature and humidity on the decay of the bread. This confirms our findings in the interaction plot in 1c), where we observed that the lines are not parallel to each other.
 
-**1d)** Which of the two factors has the greatest (numerical) influence on the decay? Is this a good question?
-
-Based on the ANOVA of the two factors, it can be noted that the $F_A$ (233.7) is higher than $F_B$ (62.3). From this, we can conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay than humudity. However, since an interaction effect was found between the two factors, this conclusion can not be made. Uitleggen waarom interactie effect hiervoor ze(Because of this, "which of the two factors has the greatest influence is" is not a good question.) (TODO: dit nog checken met college)
+**1d)** 
+To answer the question of which of the two factors has the greatest (numerical) influence on the decay, we find the following:
+Based on the ANOVA of the two factors, it can be noted that the $F_A$ (233.7) is higher than $F_B$ (62.3). From this, we can conclude that more of the variance is explained by the environment's temperature than by humidity within their respective groups. Therefore, environment might have a greater influence on the decay than humidity. However, since an interaction effect was found between the two factors, this conclusion can not be made. Because of this, "which of the two factors has the greatest influence is" is not a good question.) (TODO: dit nog checken met college)
 
 **1e)** Check the model assumptions by using relevant diagnostic tools. Are there any outliers?
 Lastly, we check the model assumptions using relevant diagnostic tools. These assumptions consist of normality and equal variances of the residuals.
 ```{r}
-# qqnorm(residuals(breadov))
-# plot(fitted(breadov),residuals(breadov))
 plot(breadov,2)
 plot(breadov,1)
 ```
