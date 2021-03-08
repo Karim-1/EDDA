@@ -306,7 +306,7 @@ attach(expenses)
 ```{r}
 plot(expenses[,c(2,3, 4, 5, 6, 7)])
 ```
-When looking at these scatter plots some
+When looking at these scatter plots some potential points are clearly visible. An example is the data point most right in the expand-bad scatter plot.
 ```{r}
 par(mfrow=c(2,3))
 for (i in 2:7) {
@@ -314,7 +314,7 @@ for (i in 2:7) {
 }
 ```
 
-problem of potential and influence points:
+problem of influence points:
 ```{r}
 print("Cook's distances for lm(expend~bad+crime+lawyers+employ+pop):")
 round(cooks.distance(lm(expend~bad+crime+lawyers+employ+pop)), 2)
