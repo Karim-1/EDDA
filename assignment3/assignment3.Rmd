@@ -105,16 +105,15 @@ plot(fruitflieslm4,1)
 ```
 Normality seems to have improved, but still looks slightly dubious. Moreover, if we use longevity in stead of loglongevity, we observe that the spread in residuals is larger around larger fitted values. (Which may be expected due to the nature of logarithms. However, heteroscedcity looks much better with the regular longevity values. Therefore, it was not wise to do the log transformation.
 
-
 ### Exercise 2
 ```{r}
-titanic = read.table("titanic.txt",header=TRUE); titanic
+titanic = read.table("titanic.txt",header=TRUE)
 titanic$Age = as.numeric(titanic$Age)
 ```
 **2a)**
-```{r warning=FALSE, warn.conflicts = FALSE}
-require(ggplot2)
-require(gridExtra)
+```{r warning=FALSE, warn.conflicts = FALSE, ggplot2}
+library(ggplot2)
+library(gridExtra)
 # histograms of males, females and everyone who survived
 males = qplot(titanic$Survived[titanic$Sex == "male"], xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Males") + theme(plot.title = element_text(hjust = 0.5))
 females = qplot(titanic$Survived[titanic$Sex == "female"], xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Females") + theme(plot.title = element_text(hjust = 0.5))
@@ -123,13 +122,12 @@ grid.arrange(males, females, everyone, ncol=3)
 
 # count tables to show division of males/females between classes
 cat("This table shows the total count of males and females in each PClass\n")
-tot = xtabs(~Sex+PClass, data=titanic); sur
+tot = xtabs(~Sex+PClass, data=titanic); tot
 cat("This table shows the total count of males and females in each PClass that survived\n")
-tot.s = xtabs(Survived~Sex+PClass, data=titanic); sur.c
+tot.s = xtabs(Survived~Sex+PClass, data=titanic); tot.s
 cat("This table shows the percentage of males and females in each PClass that survived\n")
-round(sur.c/sur, 2)
+round(tot.s/tot, 2)
 
-# boxplots with 
 par(mfrow=c(1,3))
 boxplot(Age~PClass, data=titanic)
 boxplot(Age~Survived, data=titanic)
@@ -257,13 +255,6 @@ The deviance residual's seem to be somewhat explained by the predicted values, t
 Slide 16 of lecture 10 states the following: "Diagnostics for GLM’s is not as straightforward as for linear models, and will not be treated in this course". Because this Poisson regression uses the GLM, no more diagnostics are performed.
 
 **3c)** We predict the number of coups for a hypothetical country for all the three levels of political liberalization and the averages (over all the counties in the data) of all the other (numerical) characteristics.
-
-```{r eval=FALSE, include=FALSE}
-# predict(afrglm, data.frame(pollib="0", oligarchy=mean(afr$oligarchy), parties=mean(afr$parties)))[[1]]
-# predict(afrglm, data.frame(pollib="1", oligarchy=mean(afr$oligarchy), parties=mean(afr$parties)))[[1]]
-# predict(afrglm, data.frame(pollib="2", oligarchy=mean(afr$oligarchy), parties=mean(afr$parties)))[[1]]
-```
-
 ```{r}
 print("pollib 0:")
 print(exp(0.207981 + 0.091466*mean(afr$oligarchy) -0.495414*0 - 1.112086*0 + 0.022358*mean(afr$parties)))
