@@ -5,24 +5,114 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(digits=3)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+### Exercise 1: Fruit flies
+To investigate the effect of sexual activity on longevity of fruit flies, 75 male fruit flies were divided randomly in three groups of 25. The fruit flies in the first group were kept solitary, those in the second were kept together with one virgin female fruit fly per day, and those in the third group were kept together with eight virgin female fruit flies a day. In the data-file fruitflies.txt the three groups are labelled isolated, low and high. The number of days until death (longevity) was measured for all flies. Later, it was decided to measure also the length of their thorax. Add a column loglongevity to the data-frame, containing the logarithm of the number of days until death. Use this as the response variable in the following.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+# willen we assumpties checken???
+Firstly, the fruitflies data is read in and an extra column with the log of the fruitflies longevity is added.
+```{r message=FALSE, warning=FALSE}
+fruitflies = read.table("fruitflies.txt",header=TRUE)
+fruitflies$loglongevity = log(fruitflies$longevity)
+attach(fruitflies)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+a) Make an informative plot of the data. Investigate whether sexual activity in fluences longevity by performing a statistical test, without taking the thorax length into account. What are the estimated longevities for the three conditions? Comment.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+Then, an informative plot of the data is created. In the plot, thorax length is plotted against longetivity. Moreover, each condition is assigned a color.
+```{r}
+plot(loglongevity ~ thorax, pch = 20, col=ifelse(activity=="isolated", "red", ifelse(activity=="low", "blue", "green")))
+legend("topleft", legend=c("isolated", "low", "high"),
+       col=c("red", "blue","green"), pch=20, box.lty=2)
 ```
+In the plot, longetivity clearly increases with thorax length. Moreover, from the colors it looks like the fruitflies live shorter on average in conditions with more sexual activity.
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Then we perform a one-way ANOVA to investigate whether sexual activity influences longetivity (without taking thorax length into account).
+```{r}
+fruitflies$activity = as.factor(fruitflies$activity)
+
+fruitflieslm1 = lm(loglongevity~activity, data=fruitflies)
+
+# get the ANOAV p-value
+anova(fruitflieslm1)[5]
+```
+The factor 'activity' is significant (p<.001), implying that we reject the null hypothesis that activity does not influence longevity.
+
+Moreover, we calculate the estimated longevity for the three conditions with a summary.
+```{r}
+summary(fruitflieslm1)[4]
+```
+The estimated values are:
+- 3.602 for the 'high' condition
+- 3.602 + .398 = 4.000 for the 'high' condition
+- 3.602 + .517 = 4.115 for the 'isolated' condition
+
+b) Investigate whether sexual activity influences longevity by performing a statistical test, now including thorax length as an explanatory variable into the analysis. Does sexual activity increase or decrease longevity? What are the estimated longevities for the three groups, for a fly with average thorax length?
+
+We then examine wether sexual activity influences longetivity by performing a ANCOVA test with thorax lenght added as an explanatory variable. 
+```{r}
+fruitflies$thorax = as.factor(fruitflies$thorax)
+fruitflieslm2a = lm(loglongevity ~ thorax + activity, data=fruitflies)
+fruitflieslm2b = lm(loglongevity ~ thorax, data=fruitflies)
+anova(fruitflieslm2a, fruitflieslm2b)[6]
+```
+If we correct for the thorax variable, we find a significant p-value for the activity factor (p<.001), therefore we reject h0 for both factors and we may conclude that activity has a main effect on longevity taking thorax length into consideration.
+```{r}
+fruitflies = read.table("fruitflies.txt",header=TRUE)
+fruitflies$loglongevity = log(fruitflies$longevity)
+
+cat('average thorax length =',mean(thorax),'\n\n')
+summary(fruitflieslm2a)[4]
+```
+The average thorax length is .825, therefore we will consider the thorax0.82 row (as this value is closest).
+The estimated longevities for the three groups for a fly with average thorax length are then:
+- 2.981 + .858 = 3.839 for the 'high' condition
+- 2.981 + .858 + .365 = 4.204 for the 'low' condition
+- 2.981 + .858 + .462 = 4.301 for the 'isolated' condition
+
+
+c) How does thorax length influence longevity? Investigate graphically and by using an appropriate test whether this dependence is similar under all three conditions of sexual activity.
+We then test how thorax length influences longevity graphically by once again considering the plot from a) and adding lines for the intercepts per condition.
+# todo, even checken of dit goed is
+```{r}
+plot(loglongevity ~ thorax, data=fruitflies, pch = 20, col=ifelse(activity=="isolated", "red", ifelse(activity=="low", "blue", "green")))
+abline(lm(loglongevity~thorax, data=fruitflies[c(1:25),]), col='red', lty='dashed')
+abline(lm(loglongevity~thorax, data=fruitflies[c(26:50),]), col='blue', lty='dashed')
+abline(lm(loglongevity~thorax, data=fruitflies[c(51:75),]), col='green', lty='dashed')
+legend("topleft", legend=c("isolated", "low", "high"),
+       col=c("red", "blue","green"), pch=20, box.lty=2)
+```
+In the graph, we observe similar slopes for the three conditions. This gives the impression that the dependence on thorax length is similar for all three conditions. To statistically test this, we use a mixed anova model.
+```{r}
+fruitflies$thorax = as.factor(fruitflies$thorax)
+fruitflieslm3 = lm(loglongevity~activity*thorax, data=fruitflies)
+anova(fruitflieslm3)[5]
+```
+Indeed we find a non significant p-value for the interaction effect between activity and thorax (p = .46). Therefore, we may conclude that the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity.
+
+d) Which of the two analyses, without or with thorax length, do you prefer? Is one of the analyses wrong?
+Since we found that Thorax length 
+Since the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity, we do not have to take the thorax length into consideration for the analysis. Therefore we would prefer the one-way ANOVA over the ANCOVA. The ANCOVA however is not wrong, because correcting for the thorax length does not make the analysis less accurate.
+#todo: even dubbel checken
+
+e) We then verify normality and heteroscedasticity (for the analysis including thorax length)
+```{r message=FALSE, warning=FALSE}
+plot(fruitflieslm2a,2)
+plot(fruitflieslm2a,1)
+```
+Normality looks slightly dubious (the points are not on a straight line). 
+The datapoints in the residuals vs fitted plotted look relatively evenly distributed. We may therefore assume heteroscedasticity.
+
+f) Perform the ancova analysis with the number of days as the response, rather than its logarithm. Verify
+normality and homoscedasticity of the residuals of this analysis. Was it wise to use the logarithm as response?
+```{r message=FALSE, warning=FALSE}
+fruitflieslm4 = lm(longevity ~ thorax + activity, data=fruitflies)
+plot(fruitflieslm4,2)
+plot(fruitflieslm4,1)
+```
+Although normality seems to have slightly improved, if we use longevity in stead of loglongevity, we can observe that the spread in residuals is larger around larger fitted values. Therefore, we can no longer assume heteroscedascity. Therefore, it was wise to use the logarithm of the longevity values as the response variable.
+
