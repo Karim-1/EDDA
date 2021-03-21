@@ -8,12 +8,105 @@ knitr::opts_chunk$set(echo = TRUE)
 options(digits=3)
 ```
 
-**Exercise 1**
+### Exercise 1
+Firstly, the fruitflies data is read in and an extra column with the log of the fruitflies longevity is added.
+```{r message=FALSE, warning=FALSE}
+fruitflies = read.table("fruitflies.txt",header=TRUE)
+fruitflies$loglongevity = log(fruitflies$longevity)
+attach(fruitflies)
+```
+
+**1a)**
+Then, an informative plot of the data is created, disregarding thorax length.
+```{r}
+boxplot(fruitflies$loglongevity~fruitflies$activity,xlab='activity',ylab='longevity (log)')
+```
+We observe the highest longevity for the isolated condition, followed by the low condition, with the high sexual activity condition showing the lowest longevity.  
+
+To test the significance of these observations, we perform a one-way ANOVA (without taking thorax length into account).
+```{r}
+fruitflies$activity = as.factor(fruitflies$activity)
+
+fruitflieslm1 = lm(loglongevity~activity, data=fruitflies)
+
+# Get the ANOAV p-value:
+anova(fruitflieslm1)[5]
+```
+The factor 'activity' is significant (p<.001), implying that we may reject the null hypothesis that activity does not influence longevity (not correcting for thorax length).
+
+Moreover, we calculate the estimated longevity for the three conditions with a summary.
+```{r}
+# Coefficients:
+summary(fruitflieslm1)[4]
+```
+The estimated (log) longevities are:
+- 3.602 for the 'high' condition
+- 3.602 + .398 = 4.000 for the 'low' condition
+- 3.602 + .517 = 4.115 for the 'isolated' condition
+
+**b)** 
+We then examine whether sexual activity influences longevity by performing a ANCOVA test with thorax length added as an explanatory variable. 
+```{r}
+fruitflieslm2a = lm(loglongevity ~ thorax + activity, data=fruitflies)
+fruitflieslm2b = lm(loglongevity ~ thorax, data=fruitflies)
+
+# Get the ANCOVA p-value:
+anova(fruitflieslm2b, fruitflieslm2a)[6]
+```
+If we correct for the thorax variable, we still find a significant p-value for the activity factor (p<.001), therefore we reject h0 for both factors and we may conclude that activity has a main effect on longevity taking thorax length into consideration.
+```{r}
+mean_length = mean(thorax)
+cat('average thorax length =',mean_length,'\n\n')
+predict(fruitflieslm2a, data.frame(thorax=mean_length, activity=c('high','low','isolated')))
+```
+The average thorax length is .825, if we use the predict function for the three conditions of activity, we observe the following (log) longevities:
+- 3.68 for the 'high' condition
+- 3.96 for the 'low' condition
+- 4.09 for the 'isolated' condition
+
+**c)** We then test how thorax length influences longevity graphically by plotting the data with different colors to the activity conditions and added lines for the intercepts.
+```{r}
+plot(loglongevity ~ thorax, data=fruitflies, pch = 20, col=ifelse(activity=="isolated", "red", ifelse(activity=="low", "blue", "green")))
+abline(lm(loglongevity~thorax, data=fruitflies[c(1:25),]), col='red', lty='dashed')
+abline(lm(loglongevity~thorax, data=fruitflies[c(26:50),]), col='blue', lty='dashed')
+abline(lm(loglongevity~thorax, data=fruitflies[c(51:75),]), col='green', lty='dashed')
+legend("topleft", legend=c("isolated", "low", "high"),
+       col=c("red", "blue","green"), pch=20, box.lty=2)
+```
+In the graph, we observe similar slopes for the three conditions. This gives the impression that the dependence on thorax length is similar for all three conditions. To statistically test this, we use a mixed anova model.
+```{r}
+fruitflies$thorax = as.factor(fruitflies$thorax)
+fruitflieslm3 = lm(loglongevity~activity*thorax, data=fruitflies)
+anova(fruitflieslm3)[5]
+```
+Indeed we find a non significant p-value for the interaction effect between activity and thorax (p = .46). This suggests that the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity.
+
+**d)** 
+Which of the two analyses, without or with thorax length, do you prefer? Is one of the analyses wrong?
+Since the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity, we do not have to take the thorax length into consideration for the analysis. However, since we already have the data and it does not hurt our analysis we would prefer the ANCOVA over the one-way ANOVA. Correcting for the effect of thorax length may still give us a slightly more accurate estimation of the fruitflies longevity in the different conditions.
+
+**e)** 
+We then verify normality and heteroscedasticity (for the analysis including thorax length)
+```{r message=FALSE, warning=FALSE}
+par(mfrow=c(1,2))
+plot(fruitflieslm2a,2)
+plot(fruitflieslm2a,1)
+```
+Normality looks slightly dubious (the points are not on a straight line). 
+The datapoints in the residuals vs fitted plotted look relatively evenly distributed. However, the red line, giving an indication of the spread of residuals, is not straight. Therefore heteroscedascity looks dubious too. 
+
+**f)** 
+Lastly we perform the ANCOVA with number of days as the response.
+```{r message=FALSE, warning=FALSE}
+par(mfrow=c(1,2))
+fruitflieslm4 = lm(longevity ~ thorax + activity, data=fruitflies)
+plot(fruitflieslm4,2)
+plot(fruitflieslm4,1)
+```
+Normality seems to have improved, but still looks slightly dubious. Moreover, if we use longevity in stead of loglongevity, we observe that the spread in residuals is larger around larger fitted values. (Which may be expected due to the nature of logarithms. However, heteroscedcity looks much better with the regular longevity values. Therefore, it was not wise to do the log transformation.
 
 
-
-
-**Exercise 2**
+### Exercise 2
 ```{r}
 titanic = read.table("titanic.txt",header=TRUE); titanic
 titanic$Age = as.numeric(titanic$Age)
@@ -105,10 +198,9 @@ Fisher is not a wrong approach, it is exact and whenever a contingency table exi
 An advantage of Fisher test is that it is exact and can also be used on small values. Whereas the Chi-squared test can not be used on small values. However, a disadvantage of the Fisher test is that this test can only be used on contingency tables which are 2x2, while the Chi-squared test can be used for both 2x2 and bigger contingency table.
 
 
-**Exercise 3**
+### Exercise 3
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
-# load data
 afr= read.table("africa.txt", header = TRUE)
 afr$pollib = as.factor(afr$pollib)
 ```
