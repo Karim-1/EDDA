@@ -119,13 +119,12 @@ males = qplot(titanic$Survived[titanic$Sex == "male"], xlab="0 = Not survived, 1
 females = qplot(titanic$Survived[titanic$Sex == "female"], xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Females") + theme(plot.title = element_text(hjust = 0.5))
 everyone = qplot(titanic$Survived, xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Everyone") + theme(plot.title = element_text(hjust = 0.5))
 grid.arrange(males, females, everyone, ncol=3)
+```
 
-# count tables to show division of males/females between classes
-cat("This table shows the total count of males and females in each PClass\n")
+These tables show the total count of males and females in each PClass, the total count of males and females in each class that survived and the percentage of males and females in each PClass that survived.
+```{r warning=FALSE, warn.conflicts = FALSE}
 tot = xtabs(~Sex+PClass, data=titanic); tot
-cat("This table shows the total count of males and females in each PClass that survived\n")
 tot.s = xtabs(Survived~Sex+PClass, data=titanic); tot.s
-cat("This table shows the percentage of males and females in each PClass that survived\n")
 round(tot.s/tot, 2)
 
 par(mfrow=c(1,3))
@@ -162,15 +161,18 @@ From these results we decided to continue with the model which assumes interacti
 In order to get the probability from the model we use the predict function
 ```{r}
 titanicglm2=glm(Survived~Age*PClass*Sex,data=titanic,family=binomial)
-
-cat("Probability of a male of 53 years old surviving in all 3 passenger classes:\n")
+```
+Probability of a male of 53 years old surviving in all 3 passenger classes:
+```{r}
 newdata=data.frame(PClass=c("1st","2nd","3rd"),Age=53,Sex="male")
 predict(titanicglm2, newdata, type="response")
-
-cat("\nProbability of a female of 53 years old surviving in all 3 passenger classes:\n")
+```
+Probability of a female of 53 years old surviving in all 3 passenger classes:
+```{r}
 newdata=data.frame(PClass=c("1st","2nd","3rd"),Age=53,Sex="female")
 predict(titanicglm2,newdata,type="response")
 ```
+
 The probabilities of survival for a passenger of 53 years old in different PClasses are shown above.
 As can be seen in the data, the probability of a female surviving is higher. A female in the lowest, 3, class has a higher probability of surviving than a male in the highest, 1, class.
 
@@ -197,7 +199,6 @@ An advantage of Fisher test is that it is exact and can also be used on small va
 
 
 ### Exercise 3
-
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 afr= read.table("africa.txt", header = TRUE)
 afr$pollib = as.factor(afr$pollib)
