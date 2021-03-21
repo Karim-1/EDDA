@@ -21,6 +21,7 @@ Then, an informative plot of the data is created, disregarding thorax length.
 ```{r}
 boxplot(fruitflies$loglongevity~fruitflies$activity,xlab='activity',ylab='longevity (log)')
 ```
+
 We observe the highest longevity for the isolated condition, followed by the low condition, with the high sexual activity condition showing the lowest longevity.  
 
 To test the significance of these observations, we perform a one-way ANOVA (without taking thorax length into account).
@@ -32,6 +33,7 @@ fruitflieslm1 = lm(loglongevity~activity, data=fruitflies)
 # Get the ANOAV p-value:
 anova(fruitflieslm1)[5]
 ```
+
 The factor 'activity' is significant (p<.001), implying that we may reject the null hypothesis that activity does not influence longevity (not correcting for thorax length).
 
 Moreover, we calculate the estimated longevity for the three conditions with a summary.
@@ -39,6 +41,7 @@ Moreover, we calculate the estimated longevity for the three conditions with a s
 # Coefficients:
 summary(fruitflieslm1)[4]
 ```
+
 The estimated (log) longevities are:
 - 3.602 for the 'high' condition
 - 3.602 + .398 = 4.000 for the 'low' condition
@@ -53,12 +56,14 @@ fruitflieslm2b = lm(loglongevity ~ thorax, data=fruitflies)
 # Get the ANCOVA p-value:
 anova(fruitflieslm2b, fruitflieslm2a)[6]
 ```
+
 If we correct for the thorax variable, we still find a significant p-value for the activity factor (p<.001), therefore we reject h0 for both factors and we may conclude that activity has a main effect on longevity taking thorax length into consideration.
 ```{r}
 mean_length = mean(thorax)
 cat('average thorax length =',mean_length,'\n\n')
 predict(fruitflieslm2a, data.frame(thorax=mean_length, activity=c('high','low','isolated')))
 ```
+
 The average thorax length is .825, if we use the predict function for the three conditions of activity, we observe the following (log) longevities:
 - 3.68 for the 'high' condition
 - 3.96 for the 'low' condition
@@ -73,16 +78,17 @@ abline(lm(loglongevity~thorax, data=fruitflies[c(51:75),]), col='green', lty='da
 legend("topleft", legend=c("isolated", "low", "high"),
        col=c("red", "blue","green"), pch=20, box.lty=2)
 ```
+
 In the graph, we observe similar slopes for the three conditions. This gives the impression that the dependence on thorax length is similar for all three conditions. To statistically test this, we use a mixed anova model.
 ```{r}
 fruitflies$thorax = as.factor(fruitflies$thorax)
 fruitflieslm3 = lm(loglongevity~activity*thorax, data=fruitflies)
 anova(fruitflieslm3)[5]
 ```
+
 Indeed we find a non significant p-value for the interaction effect between activity and thorax (p = .46). This suggests that the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity.
 
 **d)** 
-Which of the two analyses, without or with thorax length, do you prefer? Is one of the analyses wrong?
 Since the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity, we do not have to take the thorax length into consideration for the analysis. However, since we already have the data and it does not hurt our analysis we would prefer the ANCOVA over the one-way ANOVA. Correcting for the effect of thorax length may still give us a slightly more accurate estimation of the fruitflies longevity in the different conditions.
 
 **e)** 
@@ -92,6 +98,7 @@ par(mfrow=c(1,2))
 plot(fruitflieslm2a,2)
 plot(fruitflieslm2a,1)
 ```
+
 Normality looks slightly dubious (the points are not on a straight line). 
 The datapoints in the residuals vs fitted plotted look relatively evenly distributed. However, the red line, giving an indication of the spread of residuals, is not straight. Therefore heteroscedascity looks dubious too. 
 
@@ -103,6 +110,7 @@ fruitflieslm4 = lm(longevity ~ thorax + activity, data=fruitflies)
 plot(fruitflieslm4,2)
 plot(fruitflieslm4,1)
 ```
+
 Normality seems to have improved, but still looks slightly dubious. Moreover, if we use longevity in stead of loglongevity, we observe that the spread in residuals is larger around larger fitted values. (Which may be expected due to the nature of logarithms. However, heteroscedcity looks much better with the regular longevity values. Therefore, it was not wise to do the log transformation.
 
 ### Exercise 2
@@ -119,21 +127,33 @@ males = qplot(titanic$Survived[titanic$Sex == "male"], xlab="0 = Not survived, 1
 females = qplot(titanic$Survived[titanic$Sex == "female"], xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Females") + theme(plot.title = element_text(hjust = 0.5))
 everyone = qplot(titanic$Survived, xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Everyone") + theme(plot.title = element_text(hjust = 0.5))
 grid.arrange(males, females, everyone, ncol=3)
+```
 
-# count tables to show division of males/females between classes
-cat("This table shows the total count of males and females in each PClass\n")
+The total count of males and females in each PClass:
+```{r}
 tot = xtabs(~Sex+PClass, data=titanic); tot
-cat("This table shows the total count of males and females in each PClass that survived\n")
-tot.s = xtabs(Survived~Sex+PClass, data=titanic); tot.s
-cat("This table shows the percentage of males and females in each PClass that survived\n")
-round(tot.s/tot, 2)
+```
 
+The total count of males and females in each PClass that survived:
+```{r}
+tot.s = xtabs(Survived~Sex+PClass, data=titanic); tot.s
+```
+
+The percentage of males and females in each PClass that survived:
+```{r}
+round(tot.s/tot, 2)
+```
+
+```{r}
 par(mfrow=c(1,3))
 boxplot(Age~PClass, data=titanic)
 boxplot(Age~Survived, data=titanic)
 
 totage=xtabs(~Age, data=titanic)
 barplot(xtabs(Survived~Age, data=titanic)/totage, main="Age distribution over all passengers", xlab="Age", ylab="Percentage of people survived in Age group")
+
+```
+
 ```
 **2b)**
 ```{r echo=FALSE}
