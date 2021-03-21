@@ -18,18 +18,18 @@ Firstly, the fruitflies data is read in and an extra column with the log of the 
 fruitflies = read.table("fruitflies.txt",header=TRUE)
 fruitflies$loglongevity = log(fruitflies$longevity)
 attach(fruitflies)
+fruitflies
 ```
 
 
-a) Make an informative plot of the data. Investigate whether sexual activity in fluences longevity by performing a statistical test, without taking the thorax length into account. What are the estimated longevities for the three conditions? Comment.
+a) Make an informative plot of the data. Investigate whether sexual activity influences longevity by performing a statistical test, without taking the thorax length into account. What are the estimated longevities for the three conditions? Comment.
 
-Then, an informative plot of the data is created. In the plot, thorax length is plotted against longetivity. Moreover, each condition is assigned a color.
+Then, an informative plot of the data is created. As thorax length is disregarded. Moreover, each condition is assigned a color.
 ```{r}
-plot(loglongevity ~ thorax, pch = 20, col=ifelse(activity=="isolated", "red", ifelse(activity=="low", "blue", "green")))
-legend("topleft", legend=c("isolated", "low", "high"),
-       col=c("red", "blue","green"), pch=20, box.lty=2)
+boxplot(fruitflies$loglongevity~fruitflies$activity,xlab='activity',ylab='longevity (log)')
+# stripchart(fruitflies$loglongevity~fruitflies$activity,ylab='activity',xlab='longevity (log)')
 ```
-In the plot, longetivity clearly increases with thorax length. Moreover, from the colors it looks like the fruitflies live shorter on average in conditions with more sexual activity.
+In the boxplot, it can be observed 
 
 Then we perform a one-way ANOVA to investigate whether sexual activity influences longetivity (without taking thorax length into account).
 ```{r}
@@ -40,40 +40,37 @@ fruitflieslm1 = lm(loglongevity~activity, data=fruitflies)
 # get the ANOAV p-value
 anova(fruitflieslm1)[5]
 ```
-The factor 'activity' is significant (p<.001), implying that we reject the null hypothesis that activity does not influence longevity.
+The factor 'activity' is significant (p<.001), implying that we reject the null hypothesis that activity does not influence longevity (not correcting for thorax length). (todo:accept ha)
 
 Moreover, we calculate the estimated longevity for the three conditions with a summary.
 ```{r}
 summary(fruitflieslm1)[4]
 ```
-The estimated values are:
+The estimated (log) are:
 - 3.602 for the 'high' condition
-- 3.602 + .398 = 4.000 for the 'high' condition
+- 3.602 + .398 = 4.000 for the 'low' condition
 - 3.602 + .517 = 4.115 for the 'isolated' condition
 
 b) Investigate whether sexual activity influences longevity by performing a statistical test, now including thorax length as an explanatory variable into the analysis. Does sexual activity increase or decrease longevity? What are the estimated longevities for the three groups, for a fly with average thorax length?
 
-We then examine wether sexual activity influences longetivity by performing a ANCOVA test with thorax lenght added as an explanatory variable. 
+We then examine whether sexual activity influences longevity by performing a ANCOVA test with thorax length added as an explanatory variable. 
 ```{r}
-fruitflies$thorax = as.factor(fruitflies$thorax)
+# fruitflies$thorax = as.factor(fruitflies$thorax)
 fruitflieslm2a = lm(loglongevity ~ thorax + activity, data=fruitflies)
 fruitflieslm2b = lm(loglongevity ~ thorax, data=fruitflies)
-anova(fruitflieslm2a, fruitflieslm2b)[6]
+anova(fruitflieslm2b, fruitflieslm2a)[6]
 ```
-If we correct for the thorax variable, we find a significant p-value for the activity factor (p<.001), therefore we reject h0 for both factors and we may conclude that activity has a main effect on longevity taking thorax length into consideration.
+If we correct for the thorax variable, we still find a significant p-value for the activity factor (p<.001), therefore we reject h0 for both factors and we may conclude that activity has a main effect on longevity taking thorax length into consideration.
+
 ```{r}
-fruitflies = read.table("fruitflies.txt",header=TRUE)
-fruitflies$loglongevity = log(fruitflies$longevity)
-
-cat('average thorax length =',mean(thorax),'\n\n')
-summary(fruitflieslm2a)[4]
+mean_length = mean(thorax)
+cat('average thorax length =',mean_length,'\n\n')
+predict(fruitflieslm2a, data.frame(thorax=mean_length, activity=c('high','low','isolated')))
 ```
-The average thorax length is .825, therefore we will consider the thorax0.82 row (as this value is closest).
-The estimated longevities for the three groups for a fly with average thorax length are then:
-- 2.981 + .858 = 3.839 for the 'high' condition
-- 2.981 + .858 + .365 = 4.204 for the 'low' condition
-- 2.981 + .858 + .462 = 4.301 for the 'isolated' condition
-
+The average thorax length is .825, if we use the predict function for the three conditions of activity, we observe the following (log) longevities:
+- 3.68 for the 'high' condition
+- 3.96 for the 'low' condition
+- 4.09 for the 'isolated' condition
 
 c) How does thorax length influence longevity? Investigate graphically and by using an appropriate test whether this dependence is similar under all three conditions of sexual activity.
 We then test how thorax length influences longevity graphically by once again considering the plot from a) and adding lines for the intercepts per condition.
@@ -92,12 +89,14 @@ fruitflies$thorax = as.factor(fruitflies$thorax)
 fruitflieslm3 = lm(loglongevity~activity*thorax, data=fruitflies)
 anova(fruitflieslm3)[5]
 ```
-Indeed we find a non significant p-value for the interaction effect between activity and thorax (p = .46). Therefore, we may conclude that the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity.
+Indeed we find a non significant p-value for the interaction effect between activity and thorax (p = .46). This suggests that the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity.
 
 d) Which of the two analyses, without or with thorax length, do you prefer? Is one of the analyses wrong?
 Since we found that Thorax length 
 Since the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity, we do not have to take the thorax length into consideration for the analysis. Therefore we would prefer the one-way ANOVA over the ANCOVA. The ANCOVA however is not wrong, because correcting for the thorax length does not make the analysis less accurate.
 #todo: even dubbel checken
+# neither is wrong, which do you prefer
+# if you have all the data, you might as well use all of it.
 
 e) We then verify normality and heteroscedasticity (for the analysis including thorax length)
 ```{r message=FALSE, warning=FALSE}
@@ -114,5 +113,5 @@ fruitflieslm4 = lm(longevity ~ thorax + activity, data=fruitflies)
 plot(fruitflieslm4,2)
 plot(fruitflieslm4,1)
 ```
-Although normality seems to have slightly improved, if we use longevity in stead of loglongevity, we can observe that the spread in residuals is larger around larger fitted values. Therefore, we can no longer assume heteroscedascity. Therefore, it was wise to use the logarithm of the longevity values as the response variable.
+Although normality seems to have slightly improved, the normality still looks slightly dubious. However, if we use longevity in stead of loglongevity, we can observe that the spread in residuals is larger around larger fitted values. Therefore, with the number of days as the response variable, we can no longer assume heteroscedascity. This implies that it was wise to use the logarithm of the longevity values as the response variable.
 
