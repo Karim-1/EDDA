@@ -1,5 +1,5 @@
 ---
-title: "assignment3"
+title: "Assignment 3"
 output: html_document
 ---
 
@@ -8,7 +8,18 @@ knitr::opts_chunk$set(echo = TRUE)
 options(digits=3)
 ```
 
-### Exercise 1
+Daan Moll (VU: 2559766 / UvA: 11929332)
+
+Ramon Bussing (VU: 2687261 / UvA: 10719482)
+
+Karim Semin (VU: ksn222 / UvA: 11285990)
+
+
+Group number: 49
+
+For all exercises, an $\alpha$ significance level of .05 is used, unless stated otherwise.
+
+### Exercise 1: Fruit flies
 Firstly, the fruitflies data is read in and an extra column with the log of the fruitflies longevity is added.
 ```{r message=FALSE, warning=FALSE}
 fruitflies = read.table("fruitflies.txt",header=TRUE)
@@ -105,7 +116,7 @@ plot(fruitflieslm4,1)
 ```
 Normality seems to have improved, but still looks slightly dubious. Moreover, if we use longevity in stead of loglongevity, we observe that the spread in residuals is larger around larger fitted values. (Which may be expected due to the nature of logarithms. However, heteroscedcity looks much better with the regular longevity values. Therefore, it was not wise to do the log transformation.
 
-### Exercise 2
+### Exercise 2: Titanic
 ```{r}
 titanic = read.table("titanic.txt",header=TRUE)
 titanic$Age = as.numeric(titanic$Age)
@@ -198,7 +209,7 @@ Fisher is not a wrong approach, it is exact and whenever a contingency table exi
 An advantage of Fisher test is that it is exact and can also be used on small values. Whereas the Chi-squared test can not be used on small values. However, a disadvantage of the Fisher test is that this test can only be used on contingency tables which are 2x2, while the Chi-squared test can be used for both 2x2 and bigger contingency table.
 
 
-### Exercise 3
+### Exercise 3: Military coups in Africa
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 afr= read.table("africa.txt", header = TRUE)
 afr$pollib = as.factor(afr$pollib)
@@ -208,6 +219,7 @@ afr$pollib = as.factor(afr$pollib)
 ```{r}
 summary(glm(miltcoup~oligarchy+pollib+parties+pctvote+popn+size+numelec+numregim, family = poisson, data = afr))
 ```
+
 We find that oligarchy, pollib and parties contribute the most. In the step-down method below we also end up with a glm based on those three explanatory variables. From the summary above we can see that as oligarchy increases the miltcoups also increase, that when pollib has a higher number the miltcoups decreases, and that when the parties increase the miltcoups increase.
 
 **3b)** We use the step down approach to reduce the number of explanatory variables.
@@ -239,6 +251,7 @@ pctvote has the highest non-significant p-value, thus we remove that explanatory
 afrglm = glm(miltcoup~oligarchy+pollib+parties, family = poisson, data = afr)
 summary(afrglm)
 ```
+
 With the current model all explanatory variables are significant, no more explanatory variable removal is needed. When compared to the model in 3a, we can see that indeed only the initial significant explanatory variables remain.
 
 The resulting model from the step-down method is as follows:
@@ -251,18 +264,27 @@ miltcoup = exp(0.207981 + 0.091466*oligarchy -0.495414*pollib1 - 1.112086*pollib
 plot(afrglm, 1, ann=FALSE)
 title(ylab="Deviance residuals", xlab="Predicted values")
 ```
+
 The deviance residual's seem to be somewhat explained by the predicted values, therefore the assumptions for this poisson GLM are not met.
 
 Slide 16 of lecture 10 states the following: "Diagnostics for GLM’s is not as straightforward as for linear models, and will not be treated in this course". Because this Poisson regression uses the GLM, no more diagnostics are performed.
 
 **3c)** We predict the number of coups for a hypothetical country for all the three levels of political liberalization and the averages (over all the counties in the data) of all the other (numerical) characteristics.
+
+pollib 0:
 ```{r}
-print("pollib 0:")
 print(exp(0.207981 + 0.091466*mean(afr$oligarchy) -0.495414*0 - 1.112086*0 + 0.022358*mean(afr$parties)))
-print("pollib 1:")
+```
+
+pollib 1:
+```{r}
 print(exp(0.207981 + 0.091466*mean(afr$oligarchy) -0.495414*1 - 1.112086*0 + 0.022358*mean(afr$parties)))
-print("pollib 2:")
+```
+
+pollib 2:
+```{r}
 print(exp(0.207981 + 0.091466*mean(afr$oligarchy) -0.495414*0 - 1.112086*1 + 0.022358*mean(afr$parties)))
 ```
+
 Because it predicts a count, we round to the nearest integer. With the given parameters, pollib 0 predicts 2 miltcoups, pollib 1 also predicts 2 miltcoups and pollib 2 predicts 1 miltcoup.
 
