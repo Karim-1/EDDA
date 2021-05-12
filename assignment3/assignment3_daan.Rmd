@@ -1,0 +1,105 @@
+---
+title: "assignment3_daan"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(digits=3)
+```
+
+On April 15, 1912, British passenger liner Titanic sank after colliding with an iceberg. There were not enough lifeboats for everyone onboard, resulting in the death of 1502 out of 2224 passengers and crew. The data file titanic.txt gives the survival status of passengers on the Titanic, together with their names, age, sex and passenger class. (About half of the ages for the 3rd class passengers are missing, although many of these could be filled in from the original source.) The columns: Name – name of passenger; PClass – passenger class (1st, 2nd or 3rd), Age – age in years, Sex – male or female, Survived – survival status (1=Yes or 0=No).
+```{r}
+titanic = read.table("titanic.txt",header=TRUE); titanic
+titanic$Age = as.numeric(titanic$Age)
+```
+**2a)** Study the data and give a few (>1) summaries (graphics or tables).
+```{r warning=FALSE, warn.conflicts = FALSE}
+require(ggplot2)
+require(gridExtra)
+
+# histograms of males, females and everyone who survived
+males = qplot(titanic$Survived[Sex == "male"], xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Males") + theme(plot.title = element_text(hjust = 0.5))
+females = qplot(titanic$Survived[Sex == "female"], xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Females") + theme(plot.title = element_text(hjust = 0.5))
+everyone = qplot(titanic$Survived, xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Everyone") + theme(plot.title = element_text(hjust = 0.5))
+grid.arrange(males, females, everyone, ncol=3)
+
+# count tables to show division of males/females between classes
+cat("This table shows the total count of males and females in each PClass\n")
+tot = xtabs(~Sex+PClass, data=titanic); sur
+cat("This table shows the total count of males and females in each PClass that survived\n")
+tot.s = xtabs(Survived~Sex+PClass, data=titanic); sur.c
+cat("This table shows the percentage of males and females in each PClass that survived\n")
+round(sur.c/sur, 2)
+
+# boxplots with 
+par(mfrow=c(1,3))
+boxplot(Age~PClass, data=titanic)
+boxplot(Age~Survived, data=titanic)
+
+totage=xtabs(~Age, data=titanic)
+barplot(xtabs(Survived~Age)/totage, main="Age distribution over all passengers", xlab="Age", ylab="Percentage of people survived in Age group")
+```
+**2b)**
+```{r echo=FALSE}
+titanic$PClass = as.factor(titanic$PClass)
+titanic$Age = as.numeric(titanic$Age)
+titanic$Sex = factor(titanic$Sex)
+
+titanicglm = glm(Survived ~ PClass+Age+Sex, family=binomial, data=titanic)
+summary(titanicglm)[13]
+```
+The logistic regression model without interaction is shown above. All p-values are significant and the model is noted below.
+
+Odds = exp{3.760 - 1.292 * PClass2nd - 2.521 * PClass3rd - 0.0393 * Age - 2.631 * Sexmale}
+where PClass2nd, PClass3rd and Sexmale are 1 if passenger is in the corresponding class or is a male, respectively.
+
+**2c)** Investigate for interaction of predictor Age with factors PClass and Sex.
+```{r}
+titanicglm2 = glm(Survived ~ Age*PClass*Sex, data=titanic, family=binomial)
+summary(titanicglm2)[13]
+
+cat("In question 2a it was shown that all counts are above > 5, therefore we will use the Chi-squared test.\n")
+anova(titanicglm2, test="Chisq")[5]
+```
+From the anova on our interaction model we find a p-value for the interaction between Age and Sex 
+From the anova we find a significant p-value for the interaction between the predictor Age and factor Sex. This means that there is an interaction. For the second interaction between predictor Age and factor PClass an insignificant p-value was found. Therefore we do not reject the H0 hypothesis and this means that there is no interaction between Age and PClass.
+
+From these results we decided to continue with the model which assumes interaction. This has been chosen because the anova showed that there is an interaction between Age and Sex. Therefore the model, from 2b, without interaction does not fully suffice.
+
+In order to get the probability from the model we use the predict function
+```{r}
+titanicglm2=glm(Survived~Age*PClass*Sex,data=titanic,family=binomial)
+
+cat("Male:\n")
+newdata=data.frame(PClass=c("1st","2nd","3rd"),Age=53,Sex="male")
+predict(titanicglm2, newdata, type="response")
+
+cat("\nFemale:\n")
+newdata=data.frame(PClass=c("1st","2nd","3rd"),Age=53,Sex="female")
+predict(titanicglm2,newdata,type="response")
+```
+The probabilities of survival for a passenger of 53 years old in different PClasses are shown above.
+As can be seen in the data, the probability of a female surviving is higher. A female in the lowest, 3, class has a higher probability of surviving than a male in the highest, 1, class.
+
+**2d)** 
+A method to predict the survival status would be to use a machine learning approach. This can be performed by first training our model with for example 66% of our data. From this we can use this model to make predictions on the other 33% of the passengers. The result of the model can then, as a quality measure, be compared to the actual data to determine how good the predictions of the model are.
+
+**2e)**
+```{r}
+cont = table(PClass, Survived)
+cont
+cont2 = table(Sex, Survived)
+cont2
+```
+From the contingency table for the factor PClass we can see that the rule of thumb, all counts > 5, is met and therefore the Chi-squared test is reliable and used for this factor. The other contingency table for the factor Sex is 2 by 2 and therefore the Fisher (exact) test will be used.
+```{r}
+chisq.test(cont)
+fisher.test(cont2)
+```
+The Chi-squared test on the factor PClass results in a p-value which is < 2.2e-16. This means that we reject the H0 hypothesis that the Class of a passenger has no effect on the survival status. Therefore we can say that there is significant difference between the three PClasses.
+The Fisher test on the factor Sex also results in a p-value which is < 2.2e-16. This means that we reject the H0 hypothesis that the Sex of a passenger has no effect on Survival status. This means that the Sex of a passenger does have an effect on the survival status.
+
+**2f)**
+Fisher is not a wrong approach, it is exact and whenever a contingency table exists of 2 by 2, the Fisher test is preferred over the Chi-square test.
+An advantage of Fisher test is that it is exact and can also be used on small values. Whereas the Chi-squared test can not be used on small values. However, a disadvantage of the Fisher test is that this test can only be used on contingency tables which are 2x2, while the Chi-squared test can be used for both 2x2 and bigger contingency table.

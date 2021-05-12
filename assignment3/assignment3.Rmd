@@ -1,0 +1,290 @@
+---
+title: "Assignment 3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(digits=3)
+```
+
+Daan Moll (VU: 2559766 / UvA: 11929332)
+
+Ramon Bussing (VU: 2687261 / UvA: 10719482)
+
+Karim Semin (VU: ksn222 / UvA: 11285990)
+
+
+Group number: 49
+
+For all exercises, an $\alpha$ significance level of .05 is used, unless stated otherwise.
+
+### Exercise 1: Fruit flies
+Firstly, the fruitflies data is read in and an extra column with the log of the fruitflies longevity is added.
+```{r message=FALSE, warning=FALSE}
+fruitflies = read.table("fruitflies.txt",header=TRUE)
+fruitflies$loglongevity = log(fruitflies$longevity)
+attach(fruitflies)
+```
+
+**1a)**
+Then, an informative plot of the data is created, disregarding thorax length.
+```{r}
+boxplot(fruitflies$loglongevity~fruitflies$activity,xlab='activity',ylab='longevity (log)')
+```
+We observe the highest longevity for the isolated condition, followed by the low condition, with the high sexual activity condition showing the lowest longevity.  
+
+To test the significance of these observations, we perform a one-way ANOVA (without taking thorax length into account).
+```{r}
+fruitflies$activity = as.factor(fruitflies$activity)
+
+fruitflieslm1 = lm(loglongevity~activity, data=fruitflies)
+
+# Get the ANOAV p-value:
+anova(fruitflieslm1)[5]
+```
+The factor 'activity' is significant (p<.001), implying that we may reject the null hypothesis that activity does not influence longevity (not correcting for thorax length).
+
+Moreover, we calculate the estimated longevity for the three conditions with a summary.
+```{r}
+# Coefficients:
+summary(fruitflieslm1)[4]
+```
+The estimated (log) longevities are:
+- 3.602 for the 'high' condition
+- 3.602 + .398 = 4.000 for the 'low' condition
+- 3.602 + .517 = 4.115 for the 'isolated' condition
+
+**b)** 
+We then examine whether sexual activity influences longevity by performing a ANCOVA test with thorax length added as an explanatory variable. 
+```{r}
+fruitflieslm2a = lm(loglongevity ~ thorax + activity, data=fruitflies)
+fruitflieslm2b = lm(loglongevity ~ thorax, data=fruitflies)
+
+# Get the ANCOVA p-value:
+anova(fruitflieslm2b, fruitflieslm2a)[6]
+```
+If we correct for the thorax variable, we still find a significant p-value for the activity factor (p<.001), therefore we reject h0 for both factors and we may conclude that activity has a main effect on longevity taking thorax length into consideration.
+```{r}
+mean_length = mean(thorax)
+cat('average thorax length =',mean_length,'\n\n')
+predict(fruitflieslm2a, data.frame(thorax=mean_length, activity=c('high','low','isolated')))
+```
+The average thorax length is .825, if we use the predict function for the three conditions of activity, we observe the following (log) longevities:
+- 3.68 for the 'high' condition
+- 3.96 for the 'low' condition
+- 4.09 for the 'isolated' condition
+
+**c)** We then test how thorax length influences longevity graphically by plotting the data with different colors to the activity conditions and added lines for the intercepts.
+```{r}
+plot(loglongevity ~ thorax, data=fruitflies, pch = 20, col=ifelse(activity=="isolated", "red", ifelse(activity=="low", "blue", "green")))
+abline(lm(loglongevity~thorax, data=fruitflies[c(1:25),]), col='red', lty='dashed')
+abline(lm(loglongevity~thorax, data=fruitflies[c(26:50),]), col='blue', lty='dashed')
+abline(lm(loglongevity~thorax, data=fruitflies[c(51:75),]), col='green', lty='dashed')
+legend("topleft", legend=c("isolated", "low", "high"),
+       col=c("red", "blue","green"), pch=20, box.lty=2)
+```
+In the graph, we observe similar slopes for the three conditions. This gives the impression that the dependence on thorax length is similar for all three conditions. To statistically test this, we use a mixed anova model.
+```{r}
+fruitflies$thorax = as.factor(fruitflies$thorax)
+fruitflieslm3 = lm(loglongevity~activity*thorax, data=fruitflies)
+anova(fruitflieslm3)[5]
+```
+Indeed we find a non significant p-value for the interaction effect between activity and thorax (p = .46). This suggests that the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity.
+
+**d)** 
+Which of the two analyses, without or with thorax length, do you prefer? Is one of the analyses wrong?
+Since the fruitflies longevity dependence on thorax length is similar for all three conditions of sexual activity, we do not have to take the thorax length into consideration for the analysis. However, since we already have the data and it does not hurt our analysis we would prefer the ANCOVA over the one-way ANOVA. Correcting for the effect of thorax length may still give us a slightly more accurate estimation of the fruitflies longevity in the different conditions.
+
+**e)** 
+We then verify normality and heteroscedasticity (for the analysis including thorax length)
+```{r message=FALSE, warning=FALSE}
+par(mfrow=c(1,2))
+plot(fruitflieslm2a,2)
+plot(fruitflieslm2a,1)
+```
+Normality looks slightly dubious (the points are not on a straight line). 
+The datapoints in the residuals vs fitted plotted look relatively evenly distributed. However, the red line, giving an indication of the spread of residuals, is not straight. Therefore heteroscedascity looks dubious too. 
+
+**f)** 
+Lastly we perform the ANCOVA with number of days as the response.
+```{r message=FALSE, warning=FALSE}
+par(mfrow=c(1,2))
+fruitflieslm4 = lm(longevity ~ thorax + activity, data=fruitflies)
+plot(fruitflieslm4,2)
+plot(fruitflieslm4,1)
+```
+Normality seems to have improved, but still looks slightly dubious. Moreover, if we use longevity in stead of loglongevity, we observe that the spread in residuals is larger around larger fitted values. (Which may be expected due to the nature of logarithms. However, heteroscedcity looks much better with the regular longevity values. Therefore, it was not wise to do the log transformation.
+
+### Exercise 2: Titanic
+```{r}
+titanic = read.table("titanic.txt",header=TRUE)
+titanic$Age = as.numeric(titanic$Age)
+```
+**2a)**
+```{r warning=FALSE, warn.conflicts = FALSE, ggplot2}
+library(ggplot2)
+library(gridExtra)
+# histograms of males, females and everyone who survived
+males = qplot(titanic$Survived[titanic$Sex == "male"], xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Males") + theme(plot.title = element_text(hjust = 0.5))
+females = qplot(titanic$Survived[titanic$Sex == "female"], xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Females") + theme(plot.title = element_text(hjust = 0.5))
+everyone = qplot(titanic$Survived, xlab="0 = Not survived, 1 = Survived", ylab="Counts") + stat_bin(bins=3) + ggtitle("Everyone") + theme(plot.title = element_text(hjust = 0.5))
+grid.arrange(males, females, everyone, ncol=3)
+```
+
+These tables show the total count of males and females in each PClass, the total count of males and females in each class that survived and the percentage of males and females in each PClass that survived.
+```{r warning=FALSE, warn.conflicts = FALSE}
+tot = xtabs(~Sex+PClass, data=titanic); tot
+tot.s = xtabs(Survived~Sex+PClass, data=titanic); tot.s
+round(tot.s/tot, 2)
+
+par(mfrow=c(1,3))
+boxplot(Age~PClass, data=titanic)
+boxplot(Age~Survived, data=titanic)
+
+totage=xtabs(~Age, data=titanic)
+barplot(xtabs(Survived~Age, data=titanic)/totage, main="Age distribution over all passengers", xlab="Age", ylab="Percentage of people survived in Age group")
+```
+**2b)**
+```{r echo=FALSE}
+titanic$PClass = as.factor(titanic$PClass); titanic$Age = as.numeric(titanic$Age); titanic$Sex = factor(titanic$Sex)
+titanicglm = glm(Survived ~ PClass+Age+Sex, family=binomial, data=titanic)
+summary(titanicglm)[13]
+```
+The logistic regression model without interaction is shown above. All p-values are significant and the model is noted below.
+
+Odds = exp{3.760 - 1.292 * PClass2nd - 2.521 * PClass3rd - 0.0393 * Age - 2.631 * Sexmale}
+where PClass2nd, PClass3rd and Sexmale are 1 if passenger is in the corresponding class or is a male, respectively.
+
+**2c)**
+```{r}
+titanicglm2 = glm(Survived ~ Age*PClass*Sex, data=titanic, family=binomial)
+summary(titanicglm2)[13]
+
+cat("In question 2a it was shown that all counts are above > 5, therefore we will use the Chi-squared test.\n")
+anova(titanicglm2, test="Chisq")[5]
+```
+From the anova on our interaction model we find a p-value for the interaction between Age and Sex 
+From the anova we find a significant p-value for the interaction between the predictor Age and factor Sex. This means that there is an interaction. For the second interaction between predictor Age and factor PClass an insignificant p-value was found. Therefore we do not reject the H0 hypothesis and this means that there is no interaction between Age and PClass.
+
+From these results we decided to continue with the model which assumes interaction. This has been chosen because the anova showed that there is an interaction between Age and Sex. Therefore the model, from 2b, without interaction does not fully suffice.
+
+In order to get the probability from the model we use the predict function
+```{r}
+titanicglm2=glm(Survived~Age*PClass*Sex,data=titanic,family=binomial)
+```
+Probability of a male of 53 years old surviving in all 3 passenger classes:
+```{r}
+newdata=data.frame(PClass=c("1st","2nd","3rd"),Age=53,Sex="male")
+predict(titanicglm2, newdata, type="response")
+```
+Probability of a female of 53 years old surviving in all 3 passenger classes:
+```{r}
+newdata=data.frame(PClass=c("1st","2nd","3rd"),Age=53,Sex="female")
+predict(titanicglm2,newdata,type="response")
+```
+
+The probabilities of survival for a passenger of 53 years old in different PClasses are shown above.
+As can be seen in the data, the probability of a female surviving is higher. A female in the lowest, 3, class has a higher probability of surviving than a male in the highest, 1, class.
+
+**2d)** 
+A method to predict the survival status would be to use a machine learning approach. This can be performed by first training our model with for example 66% of our data. From this we can use this model to make predictions on the other 33% of the passengers. The result of the model can then, as a quality measure, be compared to the actual data to determine how good the predictions of the model are.
+
+**2e)**
+```{r warning=FALSE, warn.conflicts = FALSE}
+attach(titanic)
+cont = table(PClass, Survived); cont
+cont2 = table(Sex, Survived); cont2
+```
+From the contingency table for the factor PClass we can see that the rule of thumb, all counts > 5, is met and therefore the Chi-squared test is reliable and used for this factor. The other contingency table for the factor Sex is 2 by 2 and therefore the Fisher (exact) test will be used.
+```{r}
+chisq.test(cont)
+fisher.test(cont2)
+```
+The Chi-squared test on the factor PClass results in a p-value which is < 2.2e-16. This means that we reject the H0 hypothesis that the Class of a passenger has no effect on the survival status. Therefore we can say that there is significant difference between the three passenger classes.
+The Fisher test on the factor Sex also results in a p-value which is < 2.2e-16. This means that we reject the H0 hypothesis that the Sex of a passenger has no effect on Survival status. This means that the Sex of a passenger does have an effect on the survival status.
+
+**2f)**
+Fisher is not a wrong approach, it is exact and whenever a contingency table exists of 2 by 2, the Fisher test is preferred over the Chi-square test.
+An advantage of Fisher test is that it is exact and can also be used on small values. Whereas the Chi-squared test can not be used on small values. However, a disadvantage of the Fisher test is that this test can only be used on contingency tables which are 2x2, while the Chi-squared test can be used for both 2x2 and bigger contingency table.
+
+
+### Exercise 3: Military coups in Africa
+```{r message=FALSE, warning=FALSE, include=FALSE}
+afr= read.table("africa.txt", header = TRUE)
+afr$pollib = as.factor(afr$pollib)
+```
+
+**3a)** We perform Poisson regression on the full data set africa, taking miltcoup as response variable.
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties+pctvote+popn+size+numelec+numregim, family = poisson, data = afr))
+```
+
+We find that oligarchy, pollib and parties contribute the most. In the step-down method below we also end up with a glm based on those three explanatory variables. From the summary above we can see that as oligarchy increases the miltcoups also increase, that when pollib has a higher number the miltcoups decreases, and that when the parties increase the miltcoups increase.
+
+**3b)** We use the step down approach to reduce the number of explanatory variables.
+
+For this step down approach we use the common significance level of 0.05.
+
+Numelec has the highest non-significant p-value, thus we remove that explanatory variable.
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties+pctvote+popn+size+numregim, family = poisson, data = afr))[[12]]
+```
+
+numregim has the highest non-significant p-value, thus we remove that explanatory variable.
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties+pctvote+popn+size, family = poisson, data = afr))[[12]]
+```
+
+size has the highest non-significant p-value, thus we remove that explanatory variable.
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties+pctvote+popn, family = poisson, data = afr))[[12]]
+```
+
+popn has the highest non-significant p-value, thus we remove that explanatory variable.
+```{r}
+summary(glm(miltcoup~oligarchy+pollib+parties+pctvote, family = poisson, data = afr))[[12]]
+```
+
+pctvote has the highest non-significant p-value, thus we remove that explanatory variable.
+```{r}
+afrglm = glm(miltcoup~oligarchy+pollib+parties, family = poisson, data = afr)
+summary(afrglm)
+```
+
+With the current model all explanatory variables are significant, no more explanatory variable removal is needed. When compared to the model in 3a, we can see that indeed only the initial significant explanatory variables remain.
+
+The resulting model from the step-down method is as follows:
+```
+miltcoup = exp(0.207981 + 0.091466*oligarchy -0.495414*pollib1 - 1.112086*pollib2 + 0.022358*parties)
+```
+
+```{r}
+# plot(predict(afrglm), residuals(afrglm, type="deviance"))
+plot(afrglm, 1, ann=FALSE)
+title(ylab="Deviance residuals", xlab="Predicted values")
+```
+
+The deviance residual's seem to be somewhat explained by the predicted values, therefore the assumptions for this poisson GLM are not met.
+
+Slide 16 of lecture 10 states the following: "Diagnostics for GLM’s is not as straightforward as for linear models, and will not be treated in this course". Because this Poisson regression uses the GLM, no more diagnostics are performed.
+
+**3c)** We predict the number of coups for a hypothetical country for all the three levels of political liberalization and the averages (over all the counties in the data) of all the other (numerical) characteristics.
+
+pollib 0:
+```{r}
+print(exp(0.207981 + 0.091466*mean(afr$oligarchy) -0.495414*0 - 1.112086*0 + 0.022358*mean(afr$parties)))
+```
+
+pollib 1:
+```{r}
+print(exp(0.207981 + 0.091466*mean(afr$oligarchy) -0.495414*1 - 1.112086*0 + 0.022358*mean(afr$parties)))
+```
+
+pollib 2:
+```{r}
+print(exp(0.207981 + 0.091466*mean(afr$oligarchy) -0.495414*0 - 1.112086*1 + 0.022358*mean(afr$parties)))
+```
+
+Because it predicts a count, we round to the nearest integer. With the given parameters, pollib 0 predicts 2 miltcoups, pollib 1 also predicts 2 miltcoups and pollib 2 predicts 1 miltcoup.
+
