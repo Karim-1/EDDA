@@ -121,7 +121,7 @@ boxplot(time~skill)
 
 interaction.plot(interface,skill,time)
 
-studentslm = lm(time~interface*skill)
+studentslm = lm(time~interface+skill)
 # anova(studentsaov2)
 ```
 --------- If assume normal then this:
